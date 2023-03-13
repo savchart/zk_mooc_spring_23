@@ -1,0 +1,1127 @@
+this is lecture eight of the ZK learning mooc I am Justin thaler and this lecture
+will cover fry based polynomial commitments and the Fiat Shamir transformation well as a reminder most
+snarks are designed by combining uh two components
+um a cryptographic protocol called a polynomial commitment scheme and a
+interactive protocol called a polynomial interactive Oracle proof or a polynomial
+IOP and you can kind of take any polynomial IOP and any polynomial commitment scheme with some minor
+caveats and put them together to get a interactive argument that is succinct
+and then apply the Fiat Shamir transformation to render the succinct
+interactive argument non-interactive and thereby obtain a snark so at this point
+in the course we have seen a variety of different
+polynomial iops and a variety of different polynomial commitment schemes
+and each individually has sort of trade-offs you know a unique performance
+profile and pros and cons and the combinations of polynomial iops and polynomial commitments also inherit the
+corresponding pros and cons so I thought I would give a very brief summary
+um of uh the various performance profiles obtainable from the protocols
+that the course has already covered and uh the protocols that we have yet to cover
+um as a brief reminder uh what is a polynomial IOP and what is a polynomial equipment scheme
+um so I will tell you actually a special case of a polynomial IOP that suffices for most but not all snarks so in this
+special case of a polynomial IOP the prover's first message to the verifier
+specifies a polynomial H the polynomial H you should think of as very large so
+for example if it is a univariate polynomial its degree might be as big as
+the circuit that the prover is claiming to know a satisfying assignment for so
+as a result of the polynomial being so large we don't want the verifier to have
+to read a complete description of that polynomial for example we don't want the verifier to have to read every
+coefficient of that polynomial that would simply destroy the sickness the
+verifier would simply be too slow so we will in the polynomial IOP not allow the
+verifier to learn H in full um rather the verifier will only be
+permitted to evaluate H at say a single point of the verifier's choosing
+um and after the verifier evaluates H at that point the approver and verifier uh
+then execute a standard interactive proof meaning um other than that very first special
+message that specified the polynomial H every other message from the prover is
+short and read by the verifier in full right and that then at the end of the polynomial IOP on the verifier decides
+whether to accept or reject the prover's claim as valid
+um a polynomial commitment scheme is a cryptographic protocol that is essentially exactly what we would need
+to turn a polynomial IOP into a succinct interactive argument so specifically a
+polynomial commitment scheme allows the prover to uh more or less simulate the
+polynomial IOP without explicitly sending a description of this large polynomial H to the
+verifier so instead the polynomial climate scheme will let the prover send a succinct cryptographic commitment to H
+to the verifier typically this will just be a single cryptographic hash value or
+a single element of a cryptographic group and the polynomial commitment
+scheme has to support the functionality of allowing the verifier to later choose
+an input x to the polynomial H and demand that the prover evaluate the
+committed polynomial H at X and then convince the verifier that indeed the
+evaluation that the prover returns to the verifier is equal to the committed
+polynomial evaluated at X so we call that an evaluation proof for the
+polynomial commitment scheme okay and the idea is that this just allows one to
+use a polynomial IOP without requiring the verifier to explicitly receive a
+complete description of the polynomial rather the verifier will receive just
+essentially a single hash value or cryptographic group element that commits to the polynomial and later it will
+receive the requested evaluation of the polynomial and a proof that the requested evaluation is correct so it
+effectively allows one to run a polynomial IOP succinctly meaning without the prover ever sending this one
+giant message specifying the polynomial H explicitly to the verifier
+okay so uh as I've already reviewed there are several different polynomial iops out there and several different
+from polynomial commitments and you can kind of uh take any polynomial IOP in
+any polynomial commitment and put them together up to some minor caveats and it's always worth reminding you that um
+the resulting snark uh inherits the property of being transparent or not
+or of being plausibly post Quantum secure or not entirely from the polynomial commitment scheme used so if
+I tell you what polynomial commitment scheme the snark is using you will immediately know is the snork transparent versus does it require a
+trusted setup is it possibly post Quantum secure or is it obviously not uh post Quantum secure okay
+um now a very brief overview of uh known polynomial iops
+um so I I categorize them into into three different categories uh one is
+based on what are called interactive proofs um the others uh based on what are called multi-prover interactive proofs
+essentially uh both of these categories were covered in lecture four the first lecture that I gave in this mooc
+um and then uh the third category according to my taxonomy is what I call constant round polynomial iops
+um and the example the the most prominent examples here are Marlin and Planck um and and so Dan covered uh the Planck
+polynomial IOP I think in lecture five um and and very roughly speaking uh the
+above snarks are listed in increasing order of uh approver costs uh but
+decreasing order of verification costs okay so uh snarks based on interactive person multi-interactive proofs broadly
+speaking have the fastest prover but higher verification costs than snarks like Marlin and Planck everything of
+course does ultimately depend as well on what polynomial commitment scheme you combine the polynomial IOP with Marlin
+and Planck both typically use kzg polynomial commitments which keeps the verification costs really low because
+kcg polynomial commitments are is is the polynomial commitment scheme with uh the best known verification costs
+okay in terms of polynomial commitment schemes that people use in practice today I categorize them into three
+classes I think this is a pretty common way of uh classifying known polynomial commitments
+um the first category is based on pairing friendly groups and trusted setup meaning that such polynomial
+commitments are neither transparent nor post Quantum secure because anything
+that uses a cryptographic group is not post Quantum and anything that uses a trusted setup is by definition not
+transparent um the most important example in this category is kzg commitments which were
+covered in both lectures five and six um and the the unique property that kdg
+commitments have is is their their evaluation proofs and the commitment itself is just a constant number of
+elements of a pairing friendly cryptographic group so we call that constant size proofs and they are these
+commitments uh kcg commitments are unique in achieving that the second category of polynomial commitments is
+based on the discrete logarithm problem and do not require a trusted setup so these will be transparent but they're
+not post Quantum secure again because the discrete logarithm problem can be solved in polynomial time if we had a a
+large enough quantum computer examples in this category include IPA
+also known as bulletproofs which upen covered in lecture six uh hyrax and Dory
+Dory does use pairing friendly groups but it is transparent unlike kzg polynomial commitments you could think
+of Dory as roughly taking bulletproofs which has logarithmic size proofs but
+linear verification time and addressing the linear verification time reducing it
+to logarithmic verification time at the cost of needing to use pairing friendly
+groups whereas bulletproof does not and also at a concrete cost even though the
+proof length is logarithmic the Dory evaluation proofs are concretely substantially bigger than the
+bulletproof's evaluation proofs even though asymptotically they're the same and then the third category of
+polynomial commitments that people use today um is based on hashing so the only cryptography they use is uh Merkel
+hashing and the Fiat Shamir transformation both of which only use cryptographic hash functions
+um so this category uh is both transparent and plausibly post Quantum
+secure um The prominent examples in this category the the most prominent one is fry that's because it is the example in
+this category with the shortest our evaluation proofs that will be the subject of today's lecture and we saw
+other examples in this category last lecture lecture seven these include lahero breakdown and Orion
+so broadly speaking here um the uh the three categories I have
+listed in increasing order of verification costs so kcg commitments
+have constant verification costs um things like bulletproof and Dory have logarithmic verification costs and
+protocols like rye and Orion have poly logarithmic verification costs so that
+is at least a log squared size proofs with a significant dependence on the
+security parameter as well so it's like security parameter Times log squared of
+the size of the polynomial being committed in this third category for fry okay so another thing worth mentioning
+is that commitment schemes from the first two categories that is using cryptographic groups are homomorphic so
+this means you can take a commitment to polynomial one and a commitment to polynomial 2 and without knowing what
+polynomial one is or what polynomial 2 is you can kind of add the commitments together to get a commitment to
+polynomial 1 plus polynomial two so you can kind of do addition underneath the
+commitments right again you can take two commitments and derive a commitment to the sum of the two committed objects
+without actually knowing either of the committed objects so these homomorphism properties of discrete logarithm and
+pairing based polynomial commitments are really important for fishing batching and amortization properties with snarks
+so this means on things like you know approver is proving to know many
+different Witnesses and doesn't want to have to sort of pay a cost that grows
+linearly with the number of witnesses it's proving that it knows and these homomorphism properties without going
+into great detail right now allow the prover to kind of prove that it knows 10 different Witnesses with costs that are
+not necessarily 10 times greater than proving that it knows a single witness and these sorts of homomorphism
+properties are likely to come up two lectures from now when Dan talks about exactly these topics so snark
+composition batching and amortization okay so the the polynomial commitments
+based on cryptographic hashing alone are not homomorphic so they are not quite as
+nice if you're working in a setting where there's opportunities for batching and amortization
+okay so again uh you can take any polynomial IOP in any polynomial commitment scheme and with some modest
+caveats put them together to get a a snark or at least a succinct interactive argument that you can make into a snark
+with Fiat Shamir um so let me just Briefly summarize uh some particular
+um snarks that are especially popular right now and explain what their pros and cons are just to try to make this
+big zoo of snarks that you can get um a little more concrete okay so I'll start with transparent
+snarks um so one uh very popular implementation of transmit parent snarks today is Halo
+2. I've written here Halo 2 hyphen zcash basically to indicate uh the Halo 2 code
+base uh with bulletproof slash IPA as the polynomial commitment scheme because
+there's a different branch of the Halo 2 code base that swaps out IPA slash bulletproofs for kzg in order to take
+advantage of you know smaller proofs and things like that at the cost of a trusted setup uh and by the way this is
+essentially the Planck polynomial IOP with the bulletproof polynomial commitment scheme
+um the benefit especially of using uh bulletproofs as the polynomial commitment is that this obtains the
+shortest proofs among transparent snarks out there today
+um the downside is especially in a non-amortized setting the verifier is very slow Lenny your time in the size of
+the quote circuit that the prover is claiming to know a satisfying assignment for so this is not a work saving
+verifier but it is a succinct proof this is one
+reason I like to separate um the notion of short proofs and fast
+verifiers right because people do call Halo 2 a snark in fact in a
+non-amortized setting it is not work saving for the verifier so apparently in
+this context the words succinct is referring only to proof length and not
+to verification time okay another example uh is uh you can
+actually take any polynomial IOP and combine it with fry based polynomial commitments and examples here include
+what people call Starks fractal Aurora Virgo lahero plus plus
+um and lahero itself is a is a a polynomial commitment scheme
+um in the same category as forever with bigger proofs the hero plus plus kind of combines the little hero polynomial
+coming in this game with the fry polynomial commitment scheme um to kind of get the nice prover cost of lahero but the shorter proofs of fry
+um so the pros of snarks from this category is because they use fry as the
+polynomial commitment they obtain the shortest proofs amongst plausibly post Quantum snarks unfortunately those
+proofs are still pretty big so they're at least hundreds of kilobytes they'd actually be into the multiple hundreds
+um depending on what exactly you want to base security upon I will discuss this
+later in today's lecture um another thing that a practitioners
+like today about uh snarks in this category is that there's more
+flexibility in what field you work over so any of the snarks that use
+cryptographic groups inside the polynomial commitment scheme so this means anything based on kzg anything
+based on bulletproofs uh or Dory or hyrax these all use cryptographic groups
+and uh cryptographic groups have to be defined over fields that are quite large
+so at least about 256 bits in size uh if
+you want um uh 128 bits of security in fact if
+you need to work over a pairing friendly group um the the resulting Fields will be of
+size even like 381 bits that is the field has size 2 to the 381.
+um so for example one of the most popular pairing friendly curves is called BLS 12381 and that 381 means that
+the uh field over which it's defined um is of size about two to the 381.
+um so if you use a polynomial commitment scheme such as fry that does not use any
+cryptographic groups which is exactly why it's plausibly post Quantum secure uh you can work over potentially smaller
+fields and moreover those fields can be a little more structured and together
+both the field size and the nice structure in the field uh can lead to
+faster field arithmetic and therefore potentially uh speed ups for both the
+prover and the verifier I think it's worth pointing out two caveats regarding
+this field size flexibility that the hashing based snarks have one caveat is
+that if the field that one works over is too small say of size about 2 to the 64
+rather than of size uh say 2 to 128 or larger there are components of of the
+protocol of the snark that will need to be repeated several times in order to
+achieve an adequate security level so that can potentially offset some of the
+benefits of faster field arithmetic if you have to repeat some aspects of the
+protocol multiple times another caveat is that many of the most important statements that are being proved today
+are actually statements about elliptic curve groups those statements are
+naturally statements about very large Fields so if those are the statements that you are proving or that you are
+spending most of your time proving then there is very little point to being able
+to work over smaller Fields because the best thing to do would be to work over
+the large field that your statement is naturally about and in fact working over a different field will only slow things
+down and add overhead so for example um when transactions on the blockchain
+are very simple such as token transfers probably the most complicated aspect of
+proving to the blockchain that you know a bunch of transactions is proving that
+the transactions contain valid digital signatures that is that the transactions
+were authorized properly by the owners of the accounts affected by the
+transactions the digital signature schemes used today are defined over
+elliptic curve groups and for this reason some of the Roll-Ups out there
+today are working over very large Fields such as 251-bit Fields
+while using fry so although fry gives the flexibility to work over small
+Fields it is uh very natural to nonetheless not take advantage of the
+flexibility if you are proving statements about large Fields because the statements you are proving refer to
+elliptic curve-based digital signature schemes or okay a third uh important
+category of transparent snarks out there will combine various mip-based or IP
+based polynomial iops with any polynomial commitment scheme
+that's particularly fast for the prover and this combination will give you the
+fastest prover out there today um so examples here include Spartan
+breakdown Orion and Orion plus Orion plus is a part of a paper called
+hyperplunk so for all of these protocols the underlying polynomial IOP is based
+on the some check protocol we discussed in lecture four and uh each of these papers combines that polynomial IOP with
+a different polynomial commitment scheme meant to be fast for the prover
+and the yeah generally speaking the downside of these uh snarks right now
+today at least is that their proofs tend to be bigger uh although actually Orion plus uh
+reports proof sizes under 10 kilobytes which in fact is much smaller than fry
+base proofs um but it does so using
+um a variant to kcg Commitment so it uh in fact is not in the transparent snarks
+category despite me listing it on this slide okay so that is a brief summary of
+some highlights uh on the uh in the category of transparent snarks I'll let
+me now briefly move to highlights of non-transparent snarks um so uh one of the most popular
+non-transparent snarks especially uh going back a couple years
+um is growth 16 so this is sort of the culmination of a long line of work
+um on snarks derived from linear pcps this is exactly the topic of next
+lecture which upang will be given and the benefits of linear PCP based snarks
+such as gross16 is that they have the best verification costs so grow 16
+proofs are only three group elements and the verify fire just does a handful of pairing operations is typically the
+verification time bottleneck and the con the major con of growth 16
+is that not only is there a trusted setup but it's a circuit-specific trusted setup so if you change the
+circuit about which the prover is claiming to know a satisfying assignment
+then you have to run the trusted setup all over again it also tends to be
+fairly slow and space intensive for the prover and due to its use of pairing
+friendly groups or just any cryptographic groups even if they weren't paying friendly it is not post
+Quantum secure now the other two highlights uh out
+there of non-transparent snarks are Marlin and Planck
+um both referring to uh when they use the kzg polynomial commitment scheme
+um the big benefit of the these over gross 16 is that the trusted setup is a
+circuit independent so you run the trusted setup once and that trusted
+setup will work for any circuit up to a given size bound the downside of marlin
+and Planck relative to grow 16 is that proofs are somewhat larger than growth 16 and the prover is slower than growth
+16 at least for a given circuit that grows 16 also applies to a CounterPoint
+in terms of prover time is that growth 16 is somewhat restricted in the kinds
+of circuits it can use specifically it's sort of very specific to either r1cs or
+arithmetic circuits and all of the other snarks out there can actually apply to a
+somewhat more expressive kinds of circuits so it's possible that the
+slower approver of marlin and Planck relative to growth 16 for a given
+circuit uh can be more than offset by the ability of marlin and Planck to
+apply to a more General class of circuits and a slower prover applied to a smaller circuit might in the end be
+faster than a faster prover applied to a bigger circuit another thing people like
+to say about growth 16 is that quote addition gates are free and what they
+mean is that the trusted setup in growth 16 which is circuit specific does have
+runtime costs that grow with the number of addition gates in the circuit but
+once the trusted setup is done the prover ingrow 16 essentially does not uh
+quote pay in runtime for any addition gates in the circuit that the prover is
+claiming to know a satisfying assignment for whereas in Marlin and Planck Edition
+Gates would contribute to the prover time okay that completes my overview of
+uh the polynomial iops polynomial commitments and combinations that are
+popular today and hopefully it clarifies uh why we are covering so many different
+polynomial iops and polynomial commitment schemes the design space is
+quite rich and understanding all of the possible performance profiles uh does require
+understanding many different ideas and techniques there's just a lot of different uh
+trade-offs available out there okay so uh the rest of today's lecture
+will be focused on Fry based polynomial commitments and more details about the
+Fiat Shamir transformation then have been covered in previous
+lectures um okay so let me remind you uh what is
+a univariate polynomial commitment scheme um so we're going to let Q be a
+polynomial of degree K minus 1 over some prime field FP p is a prime so that
+means that Q has K coefficients for example if K is 5 then Q might be one
+plus two X Plus 4x squared plus x to the fourth um so here uh the uh coefficient of the
+term X cubed is zero uh and in a univariate polynomial commitment scheme
+we would like the prover to be able to commit to q and later reveal Q of R for
+an input R uh chosen by the verifier and uh the prover is going to have to
+prove that the returned valuation is indeed uh consistent with the committed
+polynomial now you might remember from lecture four that uh I sketched a polynomial
+commitment scheme uh that simply had the prover Merkel commit to all evaluations
+of Q so that way when the verifier requested Q of R the prover could simply
+reveal the associated Leaf of the Merkle tree along with its authentication uh
+path but this had two problems uh this did not actually directly give an interesting polynomial equipment scheme
+um the first issue was that uh there is one leaf in the smirkle tree for every element of the field uh which means if
+we are working over a pretty large field the approver will just take way way too
+much time to build this Merkle tree and determine what is the root hash so we would really like the prover time to
+grow with the degree of Q and not with the size of the field which is typically
+much much much larger than the degree of Q and secondly
+um this does not give the verifier any guarantee that the function that is
+committed that is the function whose evaluations are the leaves of the tree
+actually has degree at most K minus one merko trees uh do bind the prover to the
+vector given by the leaves but do not provide any information about structure
+within that Vector so the verifier in this sort of initial attempt at a
+polynomial commitment scheme from lecture four would have no guarantee at all that the function that the Merkle
+tree binds the prover to is actually of degree at most K minus one
+okay so let us fix the first problem regarding uh the Proverbs time uh being
+uh linear in the degree of the polynomial and not the size of the field
+so rather than having the approvert commit to all evaluations of Q across
+all inputs in the entire field uh fry will instead have the prover only
+commit to evaluations of Q for those points X in a carefully chosen subset
+Omega of the field um specifically this uh set Omega will have size uh rho inverse times k
+for some constant uh row so think of row as less than or equal to one half so row
+inverse is at least two um and uh this Factor row inverse in
+front of the degree bound K is uh sometimes referred to as the fry blow up
+Factor um row itself as opposed to row inverse is also called uh the rate of the read
+Solomon code used in Fry um I will explain that in more detail
+later now due to the prover uh Merkel committing to all evaluations of the
+committed polynomial Q over a set Omega of size rho inverse times k
+um there is a very strong tension between prover time and verification costs okay because the bigger the blow
+up Factor row inverse the bigger the prover time right because the prover has to spend the time to evaluate Q at all
+points in Omega so the bigger Omega is that is the bigger row inverses the
+longer it takes the prover to evaluate Q at all those points and then build a Merkle tree over all those evaluations
+on the other hand as we will see the bigger the blow up Factor the smaller
+the verification cost will be for fry when the verifier receives an evaluation
+proof If the blow up factor is very big the proof will be shorter and the
+verification of the proof will be faster okay specifically here is how the
+verification costs in Fry depend on the blow up Factor row inverse so this
+expression will be a little bit technical but I'll explain how to think about it in a moment so the proof length
+and varied fire time is uh this many hash evaluations okay so here Lambda is
+What's called the security parameter also known as the number of bits of security at which fry is configured so
+you can think of Lambda as roughly the logarithm of the amount of work that a
+cheating prover would have to do to convince the verifier to accept a false
+claim in Fry so that is the adversary will have to run in time about 2 to the
+Lambda in order to find a convincing proof of a false statement and the size
+of the fry evaluation proof will be roughly Lambda divided by log of the
+blow up Factor Times log squared of the degree of the
+committed polynomial many hash values so the way to think about what happens in
+Fry is that the verifier of fry makes queries to the committed vector and
+roughly speaking each individual query requires the prover to return log
+squared k many hash values those are coming from Merkel authentication paths but in fact
+there are many Merkel authentication paths that need to be provided for each query and hence the number of hash
+values returned for each query is not log K as it would be with a single
+Merkle tree but in fact is the square of that so then the question becomes how
+many fry verifier queries must be made to achieve Lambda bits of security and
+the answer is roughly Lambda over log of the blow up Factor uh so that is each
+fry verifier query provides about log of the blow up Factor many bits of security
+so in order to achieve Lambda bits of security the number of queries required
+is Lambda over log of the blow-up factor in summary uh the uh perverse time grows linearly
+with the blow up Factor at least uh but the uh verifiers uh cost in terms of
+both proof length and verifier time uh Falls logarithmically with the blow up
+Factor so bigger blowup factor means more approver time but less verifier
+time and shorter proofs okay now let me tell you what is this subset
+Omega at which fry requires the prover to evaluate the polynomial Q to be
+committed so uh remember I said Omega has size uh
+the blow up Factor times the degree bound K so let me just give that size a name let me call it n and let's assume N
+is a power of two which fry will actually essentially require so what
+Omega consists of is the set of all nth roots of unity in the field
+so that is the set of all field elements X such that if you raise x to the nth power you get out one
+okay so uh this is how to think about roots of unity uh I have actually depicted here roots of unity over the
+complex numbers uh but in fact uh roots of unity over a finite field behave uh
+very similarly to roots of unity for the complex numbers uh so I think uh the
+roots of unity the picture on the slide is exactly what you should have in mind as you try to think about roots of unity
+used by fry okay so uh this first image here is the 16th roots of unity amongst
+the complex numbers okay so this represents uh the number one because the
+real component is one and the complex component is zero and this represents the number minus one okay this is I this
+is minus I um okay so this root of unity right here
+uh is What's called the Primitive root of unity um for amongst the 16th roots of unity
+uh so this means if you take this primitive root of unity and you multiply
+it by itself you get this root of unity if you take this root of unity and you
+multiply It Again by the Primitive root of unity you get the next root of unity and every time you multiply Again by
+this primitive root of unity you step uh to the what would this be counterclockwise uh one root of unity
+and after 16 multiplications so you take the Primitive root of unity and you raise it to the 16th power you get all
+the way around to one now if we look at the eighth roots of
+unity you see something very similar we have essentially just taken all of the
+um you know as we as we step around the circle uh we've taken the the odd uh steps so the Primitive 16 fruit of unity
+you know that um to the third power that to the fifth power that's the seventh power we've
+gotten rid of them okay so like the Primitive a through to Unity is the Primitive 16th root of unity squared
+and you know the next eighth root of unity is the square of that and so on and so forth
+um and and then once again I've drawn the fourth root to Unity here and uh
+yeah we've taken sort of the the even indexed uh eighth roots of unity so this one's one you know this one's three five
+uh seven by that I mean just uh the order in which you encounter them as you step around the circle and they're gone
+the odd ones are gone and the even ones remain okay so basically every time we
+take a primitive root of unity and we Square it we get a primitive root of
+unity for uh you know rather than uh n uh n becomes n over two and this is
+exactly uh the sort of behavior or the sort of uh uh that that is exploited by
+fry okay so let me just State some facts about uh the Primitive and through to Unity over a finite field
+um each of these facts except possibly the last one will exactly mirror uh the complex numbers picture I just showed on
+the previous slide okay so if Omega is a primitive nth root of unity
+um that is n is the smallest integer such that Omega to the N equals one then uh this Capital Omega set of all n
+through to Unity in the finite field is just given by all powers of Omega so the
+zeroth power is one the first power is Omega itself uh and as you just increase that power two three four up to n minus
+one uh you step through all of the and through to Unity in the finite field uh the next fact uh is that uh the nth
+roots of unity uh form what's called a multiplicative subgroup of the field uh this just means that if X and Y are two
+n through to Unity then so is their product uh this is easy to see uh
+because the product X times y raised to the power n is the same as x to the N
+times y to the n and since X and Y are both entered to Unity uh both x to the N
+is 1 and y to the N is 1 as well and one times one is one so you take 2N through Unity you multiply them together you get
+out another n through Divinity there are two special cases of this fact that are particularly important which
+follow from n being even okay the first is that if x is an nth root of unity then x squared is an N over two root of
+unity um this holds uh because obviously since n is even n over 2 is an integer
+and hence x squared to the power n over 2 is the same as x to the N which is
+just one uh the second special case again since n is even uh is that um for
+any nth root of unity x uh minus X is also an nth root of unity uh this holds
+because clearly uh minus one is an nth through Divinity uh since n is even since uh minus one to any even power is
+one and so minus X is the same as minus one times x and you know by the uh
+closure of the nth root to Unity under multiplication uh that means that minus X itself is a uh nth root of unity
+um okay the final fact um is also if you know I guess a little
+bit of group theory is also a consequence of the second fact which is
+that the set Capital Omega of and through to Unity has size n if and on
+only if n divides P minus one okay so a basic fact from group theory is that the
+size of any multiplicative subgroup of a multiplicative group divides uh the size
+of the full multiplicative group and the multiplicative subgroup of the field FP
+has size exactly P minus one so uh the uh you can only have a non-trivial set
+of nth through to Unity uh if n divides P minus one and it turns out that the
+converse is true as well so this is why many fry based snarks uh
+work over fields for which a very large power of two divides uh the field size
+minus one so for example a popular field today uh to work uh over when using fry
+is the so-called Goldilocks field of size 2 to the 64 minus 2 to the 32 Plus
+1. um one reason this is so popular is that if you uh subtract uh one from the field
+size you get out 2 to the 64 minus 2 to the 32 which is divisible by 2 to the
+32. okay so basically you can um use uh within fry the N through to
+Unity for n equals you know 4 8 16 32 64 all the way up to 2 to the 32 No 2 to
+the 32 is about 4 billion okay um so let me just give an example of the
+roots of unity um used by fry over a finite field rather than over the complex numbers uh
+so I will choose the prime field uh of order 41. um so uh in this case uh the size of the
+multiplicative subgroup of this field uh which is specifically all non-zero field elements is 40.
+right and 40 is divisible by uh eight uh that is the largest power of two that
+divides 40. um and so uh that means that there are
+eight a through to Unity in this field and we can kind of enumerate the eighth
+roots of unity um by starting with the uh first root of unity and then moving to the two second
+roots of unity uh you know which are just one and minus one because those are the only values in the field such that
+if you square them you get out one uh then if you move to the fourth roots Unity uh you'll see there are four of
+them it's uh one minus one nine and minus nine so you can just check uh like
+nine nine to the fourth uh turns out to be congruent to one modulo uh forty one
+so it requires a little bit of algebra but it is the case um you know you can you can check uh
+this uh one of the facts uh I included uh on the previous slide uh was that if
+uh X is an nth root of unity so is minus X as as long as n is even
+um and you see that here um so you know one is a four through DNA so is minus one nine is a fourth root of
+unity so is minus nine and then moving to the eighth roots in unity uh there are eight of them again eight divides uh
+P minus one um and they are one and minus one nine and minus nine three and minus three
+Fourteen and minus fourteen okay um so uh summary as an example here if
+you were using fry to commit to a polynomial
+Q over this field with 41 elements and
+um the uh and you were using as the commitment set the set of a through to
+Unity uh the commitment to Q would simply be uh to take a q evaluated at
+each of the eight a through to Unity Merkel hatched them and the root of the Merkle tree
+is the commitment to Q with fry okay
+um so that has fixed the first problem uh with our initial uh attempt at a
+polynomial commitment scheme from lecture four namely no longer does the prover time grow with the size of the
+entire field in this example 41 uh only does the prover time grow with uh the
+degree of the committed polynomial um K minus one times the uh fry blow up
+Factor but I just think of it as two uh two or four or sometimes it's 16 sometimes people will have it even
+higher but anyway think of it as some constant times the degree hence uh in
+general uh the uh time for the prover to complete compute the commitment is uh
+you know some constant only the fry blow up Factor times the degree instead of proportional to the size of the entire
+field uh so in general uh the field might be vastly vastly bigger than 41
+elements it might have size say close to 2 to the 64 or close to 228 or even
+close to 2 to the 256. okay now there is a second problem uh
+that we encountered with our initial attempt at a polynomial Crim scheme in lecture field uh for namely that the
+verifier needs to know that um the Merkel committed Vector consists of all
+evaluations uh over this uh domain uh Capital Omega of n through to Unity of
+some uh polynomial of the appropriate degree okay remember Merkle trees do not
+give you any promise I do not tell you anything about the structure of the
+committed Vector all they do is bind the prover uh to some vector and then enable
+the prover to reveal entries of the vector to which it is bound it does not by itself tell you that that Vector has
+any structure at all it's just some arbitrary Vector um so the idea of fry uh is taken from the
+literature on probabilistically checkable proofs the idea is that the verifier should inspect uh just a few
+entries of the committed Vector to try to get a sense of whether it indeed has degree at most K minus 1 or not now of
+course each query to the committed Vector will require the approver to not only respond with that particular uh
+coordinate of the committed Vector but also a authentication path consisting of
+log n hash values to prove to the verifier that the
+coordinate returned by the approver is indeed consistent with the committed
+Vector okay unfortunately if you just directly use these so-called low-degree
+tests from the probabilistically checkable proof literature uh in the context of fry they would be impractical
+the very verifier would unfortunately have to inspect a concretely very large
+number of entries of the committed vector and also the field one would have
+to work over at least to get provable security from the low degree test would
+be enormous so we do not directly use the low degree tests that were designed
+in the probabilistically checkable proofs literature from uh years ago
+instead the fry low degree test will be interactive more specifically it will
+consist of what I call a folding phase which will consist of logarithmically
+many rounds meaning the verifier will send the field element in round one and the prover will respond with another
+Merkel commitment then the verifier will send a second field element in round two and the approver will respond with yet
+another Merkel commitment then the verifier will send another field element and the approver will respond with another miracle commitment so on and so
+forth for log K many rounds and then finally the verifier will make
+these fry verifier queries I referred to several slides ago when discussing
+verification costs and that uh query phase uh where the verifier makes its
+queries uh is only one round so the interactive part of the fry low degree
+test primarily lies in the folding phase the query phase is uh minimally
+interactive the verifier just basically sends all of the queries it wishes to make and the prover responds uh with the
+answers and Associated Merkel authentication paths okay so let's talk
+about what the folding phase does um so in the folding phase uh the idea
+is uh to force the prover to repeatedly do the following the prover should
+randomly fold the committed Vector in half so this means pair up entries of the
+committed Vector so pair up like the first and second entry the third and fourth the fifth and sixth then the
+verifier will pick a random field element R and use R to randomly combine every two paired up entries in this way
+the length of the folded Vector will wind up being half the length of the original Vector because for every pair
+of entries in the original Vector we sort of randomly combine them into a single entry of the folded vector and
+what fry does is have the prover commit with a Merkle tree to the folded Vector
+now the random combining technique is specifically chosen so that if the prover is honest the folded Vector will
+also have half of the degree of the original Vector so not only should folding reduce the length of the vector
+by a factor of two it should also reduce the degree of the polynomial that is uh
+you know whose evaluations are given by the folded vector by a factor of two okay so if the original polynomial had
+degree at most uh k then um after we fold the uh that the original Vector uh
+log uh base two of K times the degree should fall to zero
+um at this point uh because the original Vector had length uh K times the fry
+blow up Factor uh while the uh you know this final Vector has degree zero uh
+meaning if the prover is honest it is constant uh it's a constant function uh
+the length of this final folded Vector is at least two I mean specifically it's at least the fry blow up factor which is
+at least two uh so while this final uh folded Vector
+um has uh two or more entries because its degree should be zero if the prover
+is honest the approver can actually specify the final folded Vector with a single field element right I need degree
+zero uh polynomial is best constant that is it Maps every uh element of its
+domain to the same output so that output is just some field element so rather
+than sending um one field element for each entry of this final folded Vector
+of which there are uh you know row inverse of these entries uh the prover
+can send just a single uh field element um specifying uh the uh value that that
+final folded function takes across its entire domain uh that domain having size
+uh equal to uh row inverse the fry blow up Factor here is a picture or example
+of the folding procedure used in Fry when the committed polynomial Q is
+committed using the a through to Unity uh from my example before over the field
+of size 41. um so uh as you can see uh in the first fold
+the entries of the initial committed Vector containing Q's evaluations at all
+a through to Unity are paired up uh with you know Q of one paired up with Q minus
+one Q of nine paired up with Q of minus nine and so forth um and then uh based on the verifiers
+randomly chosen field element R1 in that iteration of folding
+um the uh each pair of paired up entries are combined uh do not worry right now
+about the precise coefficients used to do the combining that is chosen
+specifically so that if the prover does the folding honestly the degree of Q
+will reduce by a factor of 2 upon folding and then folding is done again
+and again until the resulting Vector should be all evaluations of a degree
+zero polynomial over uh the row inverse roots of unity again rho inverse is the
+fried blow up Factor at that point because the vector should be all evaluations of a degree zero function in
+fact uh the prover if honest can just specify that Vector uh with this single
+field element so here I have depicted uh two folds um okay uh now uh the Final Phase of fry
+as mentioned before is the query phase it's when the folds have all been done the intuition of the query phase is that
+uh P may have lied at some step of the folding phase by not performing The Fold
+correctly so that is you know the approver is supposed to pair up entries
+of uh the current Vector at each iteration of the folding procedure and
+combine the paired up entries in a very specific way and the prover may not have
+done that um it may not not follow the prescribed floating procedure with the goal of
+artificially reducing the degree of the claim folded Vector right because by the
+end of the folding uh procedure it has to wind up with a constant function that
+is a degree zero polynomial so if the original committed Vector did not have
+degree K minus 1 as claims but rather had much larger degrees say degree as
+large as n which is bigger than K by a factor of the fry blowup Factor the only
+way the approver is going to ultimately wind up with a um degree zero function after log K many
+folds uh conceptually or intuitively is if the prover lies in uh some folding
+procedure and does not actually do the fold properly so the point of the query phase is for the verifier to try to
+detect uh any situation whereby the prover did not perform a fold correctly
+so the verifier in the query phase will look for inconsistencies uh between
+um you know uh two two vectors one of which is supposed to be the the folding
+of of the other um so what this means is roughly uh the verifier will pick uh this many uh this
+many entries of uh each of the uh you know committed vectors that are supposed to be foldings of the you know preceding
+uh Vector um this number is exactly uh the number uh that we discussed before whereby each
+query is providing about log of the blow up Factor many bits of security so we're
+going to need to pick uh about Lambda over uh log uh the of the blow up Factor
+uh many entries of each folded Vector to get Lambda bits of security and we need to confirm that for each selected entry
+of each Vector uh indeed that entry is the appropriate linear combination of
+the relevant two entries of the previous vector okay so this leads to a proof size uh
+displayed here um what is happening is uh each of the
+folded vectors of which there were log K of them
+um is queried at uh this many points so the desired number of bits of security
+Lambda divided by log of the fry blowup Factor
+um and then uh for each query uh there is a Merkel authentication path that
+must be provided along with the answer to the query uh the length of that authentication path is a log of the
+length of the committed Vector that is being queried so the total number of
+hash values sent is equal to the total number of queries to each of the log K
+vectors with each authentication path being about log K hash values and that
+gives you roughly uh this total quantity of hash values sent as the fry
+sort of query phase um okay so let's go into just a little
+more detail about how the folding phase actually works um so the idea is that fry is going to
+split the committed polynomial Q into even and odd Parts uh where basically
+the even part will just take into account uh coefficients of uh even
+degree and the odd part will take into account coefficients of odd degree okay
+so for example if Q of X were just 1 plus 2X plus 3x squared plus 4X cubed
+then I'm saying the even component of Q would be one plus three x so this is
+taking the coefficients of even degree and sort of uh dividing the powers by
+two and then the odd component would be 2 plus 4X this is uh taking the
+coefficients of odd degree and and again dividing the powers by two and taking
+the floor that ensures that we can write the original polynomial Q as the even
+component of Q uh evaluated at x squared plus x times the odd component of Q
+evaluated at x squared so we've literally just defined uh QE and qo so
+that this equality holds okay so um uh we think of uh sort of QE as capturing
+like one half a Q and qo as capturing the other half a Q and we'd like to
+randomly fold these two halves together so what the verifier does is it picks a random field element R and sends it to p
+and they describe the folding of Q to be exactly what I just said so QE plus r
+times qo okay so I have described the folding procedure in this way uh to make
+clear that the degree of cue fold is one half the degree of Q itself
+um this is should be clear because we have split uh the original polynomial Q
+up into two halves QE and qo each of degree at most uh half the
+degree of Q itself and uh taken a random linear combination of QE
+and qo with the kind of Randomness in the random linear combination given by this random field element R chosen by
+the verifier and of course any linear combination of two polynomials both of degree at most n over two is itself of
+degree at both n over two so this way of defining cue fold makes very clear that
+the degree of the folded polynomial is at most half of the degree of the
+original polynomial that is being folded but it is not necessarily obvious that
+the folding procedure as I've defined it here is equivalent to the folding
+procedure I depicted several slides ago whereby I said we paired up each nth
+root of unity um with its uh negative and took a a
+certain carefully defined linear combination of Q's evaluations at those
+two and through to Unity so I now need to explain that the
+folding procedure I just defined in terms of QE and qo is in fact equivalent
+to the folding procedure I depicted uh here in this picture so let us see that
+equivalence now okay so yeah I just
+Define the floating procedure in terms of QE and qo
+um right it was uh QE plus r times qo is supposed to be the folded polynomial and
+uh I now want to explain uh the equivalent with the uh picture from before which amounts to uh showing the
+following um so if we let Z be x squared the picture I had from before uh showed that
+Q fold of Z was this very specific uh linear combination of Q's evaluations at
+X and minus X um so I'm just going to now explain that under the QE plus rqo definition of
+q-fold you get exactly this Behavior Uh whereby uh cue folds evaluation at any
+square of one of the nth roots of unity uh is uh this very specific uh combination of Q's evaluations at the
+two square roots of Z namely X and minus X so let's see why this uh equality
+holds that is why this qeqo definition of cue fold implies
+um this uh other definition of q-fold uh at each uh n over two root of unity Z
+okay so we Define QE and ql specifically so that uh evaluating Q at X was
+equivalent to evaluating QE and qo at x squared and uh namely Z
+because Z is x squared multiplying the latter by X and summing the results uh so another way of stating
+uh this equality is that uh in our qeqo definition of cue fold if we set R to X
+then qfold of Z is just exactly equivalent to Q of X
+okay so we have now seen that under this definition of q-fold in terms of QE and
+qo if R were to equal x then qfold evaluated at Z would just be Q of x
+similarly if R were to equal minus X then qfold evaluated at Z would equal Q
+of minus X okay so in summary uh what these two bullet
+points right here show is that we understand uh what Q fold of Z would equal if R equals X or R equals minus X
+okay uh we have uh introduced uh the right hand side here
+exactly uh so that it has the correct Behavior at R equals X and R equals
+minus X that is this right hand side is explicitly defined
+so that it Maps R equals x to Q of X and R equals minus minus X to Q of minus X
+right you can just check that if R equals x what we have here is X Plus X over 2x that's 1 times Q of X and then
+what we have here is x minus x times whatever um x minus X is zero so x minus x times
+whatever is um zero uh the right hand side of this equality right here has uh
+exactly the correct Behavior Uh when uh R equals X or R equals minus X and it is
+a degree one function of r um and any two uh degree one functions
+of R uh that agree at two or more points must be the same function uh accordingly
+um we have uh explained that uh this right hand side here
+um is uh in fact uh the expression for
+uh Q fold of Z regardless of R's value right uh what
+What's Happening uh just to summarize is that we verified that this expression is true when R equals X or R equals minus X
+and because this is a degree one function in R and it takes exactly the
+same values as this expression does um at two different values of R these
+must actually be the same expressions um yeah so that establishes uh the
+equivalence of uh this definition of q-fold in terms of QE and qo uh with the
+picture I drew before which uh sort of explained or described cue folds Behavior at each n over tooth root of
+unity Z as a certain linear combination of Q's Behavior at the two square roots
+of Z namely X and minus X so I know this was a lot to follow online but uh you
+can sort of take your time if you wish to or otherwise you can just believe me that we have two different equivalent
+definitions of cue fold uh one as a random linear combination of QE and qo and the other via the picture from
+before uh whereby um the folded polynomial evaluated at
+each of the N over 2 through to Unity is defined as a very specific linear combination of uh the original
+polynomial being folded at the two square roots of that n over 2 root of
+unity okay
+so I just want to mention that fry is heavily exploiting the fact that the
+squaring map is two to one uh when applied to the nth roots of unity
+um if n is even um this is why N is a power of 2 is an
+assumption of fry so that n will be even throughout the entire folding procedure
+you know you keep dividing in by two it's still a power of two so it stays even the whole time
+so uh this two to one nature of the squaring map on the nth root of unity is
+what ensures that the relevant domain after each fold has in size If instead
+we replace the nth roots of unity with some other set such as all of the field elements between 0 and N minus one you
+would not have this property that uh squaring each of the field elements in the set would result in a set of half
+the size right so if you look at you know zero squared one squared 2 squared 3 squared up to n minus 1 squared you
+would get out n different values at least as long as the characteristic of
+the field was bigger than n minus 1 squared that is not the case with the N through to Unity as you look at one
+squared Omega squared Omega squared squared Omega cubed
+squared so you square each of the nth roots of unity um you don't actually get out and
+different values you get out n over two values kind of each appearing twice so
+that is a very important property of the nth Roots Unity that fry is exploiting
+that property is not satisfied by other natural interpolation domains such as uh
+kind of the first N Field elements okay uh so that is a complete
+description of fry before I sketch why it is sounds
+um and what you know talk about polynomial commitment schemes uh derived from fry let me compare it to the
+polynomial commitment scheme such as lahero breakdown and Orion that we saw last lecture from upang
+okay so um in upenn's lecture uh when he covered the uh error correcting
+code-based polynomial commitment schemes um those commitment schemes were very similar to Frye in that they all used
+error correcting codes um so fry uses something called the read Solomon code which involves
+um you know taking a vector interpreting it as a univariate polynomial and evaluating that polynomial at many
+points uh in the finite field in this case the nth roots of unity um and that's why I said before that
+this parameter row and Fry is also called the rate of the read Solomon code that's where that terminology comes from
+is the coding Theory literature on read Solomon codes so the polynomial
+commitment schemes in upenn's lecture were very similar in that they also use error correcting codes not necessarily
+just the read Solomon code and the only cryptography they used was hashing now
+the differences between uh the the lecture seven polynomial moments and Fry
+were as follows so the lecture seven seven schemes um viewed any degree D
+polynomial as consisting of uh D to the one-half vectors each of length D to the
+one half and uh so they thought of uh the polynomial as sort of like a root d
+by root D Matrix and they performed what I call a single random fold of all these
+vectors that is the verifier demanded that the prover send a uh a random
+linear combination of the rows of this Matrix okay so that's like one giant fold where you kind of combine root D
+vectors each uses root d uh into a single Vector of length root d by taking a random linear combination of each of
+the vectors uh this winds up resulting in a polynomial commitment scheme with
+uh larger proofs than fry namely size about root D but has some advantages
+over fry for example uh you can achieve a linear time prover which fry does not
+um because evaluating the committed polynomial Q at all n through to Unity
+requires super linear time uh whereas uh if you use a a different error
+correcting code than the read Solomon code you can hope for truly linear time um also a breakdown is unique uh today
+in that it works over any sufficiently large field uh unlike fry uh unlike the
+hero unlike Orion uh it does not have to work over a field where a very large
+power of two divides uh the field size minus one uh okay in comparison to the
+lecture seven commitment schemes um which kind of did one giant fold of many vectors uh fry uh views the
+polynomial to be committed as a single Vector of length order D order its degree the hidden constant in this order
+Big O notation is the fry blow up Factor rho inverse and what fry does is it
+randomly folds that Vector in half logarithmic many times so rather than doing a single giant fold you know it
+does one fold in half to kind of have the size of the committed vector and the degree of the resulting polynomial uh
+and then it folds that in half and it folds that in half and it falls out in half until it's reduced the degree if the approvers being honest
+um to zero uh so that's how I think you should uh compare the two conceptually
+everything from last lecture did a single giant fold fry does logarithmically many folds in half
+okay now let me sketch the security analysis of fry um so recall that at the start of the
+fry polynomial commitment scheme um the prover uh sends a Merkel commitment to a vector W which if the
+approver is honest is equal to Q's evaluations over all n through to Unity where n is uh noticeably bigger than uh
+the degree of Q namely K minus one um
+so the verifier needs to check that indeed this committed Vector W has
+degree at most K minus one and that is uh sort of conceptually difficult to do
+that's kind of the magic of fry uh without just reading all of W uh which would destroy succinctness of the
+evaluation proofs if the verifier needed to read uh the entirety of the committed Vector
+um so uh yeah in order to explain uh how the security analysis Works
+um let let Delta denote the relative Hamming distance of the committed
+polynomial Q from the closest polynomial uh H that
+does have degree at most K minus one so think of H as like the closest honest
+polynomial to the actual committed uh polynomial Q okay so if the prover's lying the actual
+committed polynomial queue might have degree up to n but the closest honest polynomial is H
+and by honest I mean the closest polynomial that actually does have degree K minus 1 which the proofer's
+claiming Q does but is lying possibly okay so by relative Hamming distance
+what I mean is Delta is the fraction of nth roots of unity uh such that uh H and
+Q do not agree at that input okay so that's called relative Hamming
+distance that's the fraction of inputs over which uh you know Q's evaluations were provided at which Q disagrees from
+the closest honest polynomial h okay so the key claim is that uh the
+prover will pass all of the fry verifier queries
+um with uh this this probability okay so this is a degree of the honest
+polynomial k k minus one uh divided by the field size uh plus 1 minus Delta to
+the number of queries okay now each of these terms in this probability has a natural interpretation
+so this uh degree over field size is capturing the probability that the
+prover gets lucky in the folding phase and uh one of the folded vectors has
+degree much less than um the vector that is being folded
+divided by two right so you know I said each fold should reduce the degree of
+the committed function by a factor of two okay if the prover gets really
+really lucky the degree might actually Fall by a factor more than two and if that happens the prover might be
+able to reduce the degree all the way to zero after log K folds even though he
+started with something of degree n rather than degree k so this degree over field size
+probability is bounding the probability that uh one of the folds is lucky for
+the prover and when the verifier picks a random field element uh to do the fold with it's saying that there's sort of at
+most uh k-meny field elements that the verifier might pick that reduce the
+degree of the committed function by a factor more than two which would help a cheat improver okay
+um and then you think of the second term as one minus Delta to the number of fry
+verify queries as the probability that the prover passes all of the verifiers
+consistency checks in the query phase despite the fact that it did not get a
+lucky fold that the cheating prover did not get a locking fold so this is like the probability that you know even
+though um the uh it must have done at least one
+of the folds incorrectly the verifier fails to detect the inconsistency during the query phase okay
+um so some caveats about this claim before I explain uh why you should expect a claim to be true okay the first
+caveat is that this claim is only known to hold um for uh proximity parameters Delta
+up to 1 minus the square root of rho though it is conjectured to hold for
+Delta all the way up to one minus rho um what this means is that we can only
+prove that each fry verifier query provides one half
+log 1 over rho bits of security
+whereas it is conjectured that each Friv verifier query provides log 1 over
+rho bits of security most uh deep really I think all uh
+deployments of fry analyze security under the conjecture so
+that is they simply assume that each fry verify query provides log one over rho
+bits of security when in fact what we can prove is one half of that so one
+would need to double the number of fry verifier queries thereby doubling the
+size of the proof and doubling the verifier runtime in order to
+establish uh you know the desired security level that these projects do
+desire under uh you know an unconditional
+result okay so just as an example if the fry blow up factor is four
+then each fry verifier query is conjectured to contribute two bits of
+security but is only proven to provide one bit of
+security okay with the aforementioned caveats out of
+the way let me sketch how this claim is proven uh recall that the folded polynomial is
+uh defined as a random linear combination of Q even and Q odd and it
+is uh really straightforward to check that if Q is Delta far from every degree
+K minus 1 polynomial then at least one of QE or qo must be at least Delta far
+from every degree K over 2 polynomial over the N over 2 through to Unity
+um so that is if both QE and qo were Delta close to low degree polynomials
+over the N over 2 through its Unity it is not hard to check that Q itself would also be close to a degree K polynomial
+over the nth Roots Unity um so the fact that the prover is lying
+meaning that Q is Delta far from every degree K minus 1 polynomial H tells us
+that at least one of QE or qo is also Delta far but now with the relative
+Hamming distance defined over the N over 2 through to Unity so the key idea is
+that a random linear combination of two functions Q even and Q odd at least one
+of which is Delta far from degree D polynomials will also be Delta far from degree D with overwhelming probability
+where the probability here is over the random choice of the linear combination
+remember the folded polynomial was defined as QE plus r times qo so the
+probability that this idea refers to is just over the random choice of r
+okay so quantitatively uh this K Over P term where p is the field size
+bounds this probability that the cheating prover gets a lucky R whereby
+uh Q fold winds up being closer to a polynomial of degree less than K over 2
+then it should be given that Q is not close to any polynomial of degree at
+most k okay so uh that is the first idea which
+basically says that um the prover is very unlucky to quote get a lucky fold
+the second idea is that if the approver does not get a lucky fold then the true
+final folded function uh will uh basically by definition uh be at least
+Delta Far From Any degree zero function but fry forces the prover to send a degree zero function in the final round
+of the floating procedure so at least one fold had to have been done dishonestly by the cheating prover and
+in this case each fry verifier query will detect some inconsistency uh within
+a fold meaning it will detect that the folded Vector is not the appropriate
+linear combination of the paired up entries of the vector that was folded
+with the probability it will detect this is at least this proximity to parameter
+Delta so the probability that every single one of the fry verify queries
+fails to detect uh any inconsistency in is at most 1 minus Delta to the number
+of queries right it's saying that any particular query fails to detect the inconsistency with probability one minus
+Delta so the probability that all of the queries fail to detect the inconsistency
+is at most 1 minus Delta raised to the power number of queries so that is the
+idea behind the soundness analysis of fry now I do want to mention uh the
+known attack on Fry which shows that the conjectured soundness of fry if true is
+tight so here is the known attack so recall at the start of the fry
+polynomial commitment scheme the prover Merkel commits to a vector which is
+claimed to equal the polynomial to be committed evaluations over the nth roots
+of unity here n is larger than the claim degree bound K by a factor equal to the
+fry blow up Factor rho inverse so the following prover strategy works for any
+polynomial Q even one that is maximally far from degree K and this prover
+strategy will pass all of the fry verifier checks with probability at
+least rho to the number of five error fire queries t Okay so this is saying um
+this previous strategy Works no matter how big a lie the prover is telling so no matter how far the committed function
+Q is from a degree K polynomial the following prover strategy will succeed
+in convincing the verifier to accept the false claim that Q has degree K with
+probability at least rho to the T so here is the strategy the prover picks a
+set capital T of K elements of the nth
+root to Unity and uh interpolate a polynomial let me call it s of degree K
+minus 1 that agrees with Q just at those points in capital T okay so s is going
+to agree with Q at exactly uh K points uh k n through to Unity and we're not
+going to control s's Behavior at any other points whatsoever now when during
+the folding phase uh when in the very first round of the folding phase when
+the prover is supposed to fold Q it instead folds s
+okay at all other folds it answers honestly so the very first fold is done
+dishonestly meaning it is done uh with evaluations
+of s at the nth roots of unity rather than with Q at the ends with nth roots
+of unity and then from then on the prover uh throughout the entire protocol behaves honestly and
+the point is that this proving strategy will pass all of the verifiers checks if
+every one of its T of the verifiers T queries lies in the set capital T at
+which s and Q agree okay and uh because uh we are looking at
+the nth root to Unity and S and Q agree at a row fraction of
+those nth roots of unity each individual five Eric fryer query lies in the
+agreement set with probability rho all little T fry verifier queries lie in uh
+the agreement set with probability uh at least row to the T okay so to summarize
+if the conjectured soundness of fry is correct the conjecture would be tight
+there would be no hope of improving it because there is a very simple attack
+that achieves success probability row to the number of fry verifier queries uh
+regardless of how big a lie the prover is telling by which I mean
+um this attack works for any uh committed function queue no matter how
+far it is from a degree K polynomial of course the prover is claiming it has
+degree K and I am saying that this attack will work no matter how untrue
+that claim might be okay now let's finally talk about uh
+getting a polynomial commitment scheme from Frye um because uh believe it or not even
+after all of this time I spent explaining fry we've not actually seen a complete polynomial commitment scheme
+from it so remember going back to our initial attempt at a polynomial
+commitment scheme from lecture four the prover Merkel committed to all evaluations of the polynomial Cube to be
+committed meaning every evaluation from the entire field and this meant that
+when the verifier in this attempted polynomial commitment scheme requested the evaluation of Q at some point R in
+the field the approver could just reveal the associated Merkle Leaf along with the authentication information but now
+we have the problem that Frye only has the prover Merkel commit to evaluations of Q amongst the nth roots of unity not
+over the whole field so that is an issue be because the verifier May request an
+evaluation of Q at any point R in the field not just among the nth Roots Unity
+so it's not going to be enough for the prover to Simply reveal some Leaf of the
+Merkle tree along with authentication information since if R is not an nth root of unity the Q evaluated at R is
+not a leaf of the merko tree that is just one problem another problem is that
+the verifier does not know after applying fry to q that Q is exactly low
+degree all it winds up being convinced of is that Q is quote not too far from
+low degree meaning that the verifier after applying off the fry low degree
+test is uh convinced that the relative Hamming distance of Q from a degree K
+minus 1 polynomial is not too big but it does not know that that relative Hamming
+distance is zero so we have to address both issues so the way to address this
+is uh relies on the following fact which was also used in kcg commitments
+um so it is that a degree d uh univari
+polynomial Q satisfies the property that it evaluates to V at input R if and only if there
+exists a polynomial W of degree at most D such that Q of x minus V is equal to w
+times x minus r okay so it is you know easy to see that
+if if Q of R equals V okay then um
+Q of x minus V will be divisible by x minus r
+because both the left hand side and the right hand side will evaluate to zero at
+R and so w would just be the quotient polynomial in that case and it is also
+easy to see that if Q of R does not equal V then we cannot possibly have
+such a w because the left hand side at R would evaluate to something non-zero
+while the right hand side would evaluate to zero which would be a contradiction hence in order to confirm that Q of R
+equals V where Q is the committed polynomial the verifier can apply Fry's
+fold and query procedure to the function
+obtained by taking the equation above and multiplying both the left hand side
+and right hand side by x minus r inverse using degree bound D minus one so that
+effectively checks that this polynomial W in the equation up here indeed exists
+and has degree at most D minus 1 which the fact that we discussed above uh
+explains is equivalent to the committed polynomial Q evaluating to V at input R
+so note that uh in order to apply fry to
+this function here the fry verifier we will have to
+um query uh this function at various nth roots of unity
+um when the uh fry query procedure is applied
+um and uh any evaluation of this function can be obtained with just a
+single query to queue at the same point the verifier then derives uh the uh this
+function evaluated at that point by simply subtracting V from it and then
+multiplying the result by you know the evaluation Point minus r inverse
+um and it is not difficult to show that in order for the approver to pass the
+verifiers checks in this polynomial commitment scheme with noticeable probability
+um the uh it better be the case that the claimed evaluation of the committed
+polynomial Q at R uh is equal to H evaluated at R where H is the degree D
+polynomial that is closest uh to uh Q so this uh polynomial commitment scheme
+kind of has the cool property that even though the verifier doesn't know for sure that uh the committed uh Vector Q
+is exactly low degree is exactly degree at most uh D
+um where in my earlier notation D was K minus 1 um nonetheless for the uh prover to pass
+the verifiers checks with noticeable probability um in this commitment scheme whereby the
+fry low degree test is applied to this derived polynomial derived from the
+requested evaluation point and the claim the valuation then the approver has to
+have the claimed evaluation equal to an actual exactly low degree polynomial H
+evaluated at the requested point R so effectively the prover is bound to
+answer evaluations to Q consistently with the closest uh truly low-degree
+polynomial H to Q okay so a caveat here is that the security
+analysis of this polynomial commitment scheme requires the relative Hamming distance
+uh which with which the fry low degree test is applied and analyzed to be at
+least uh this quantity one minus rho over two this is called the unique decoding radius of the read Solomon code
+the upshot is that each fry verifier query will bring less than one bit of
+security to this polynomial commitment scheme okay so what's happening is that
+uh today people are using fry actually as a weaker primitive than the
+polynomial commitment scheme described in this slide they are using it as
+something that's uh more properly referred to as a list polynomial commitment scheme
+um it turns out that a list polynomial commitment schemes still suffices for snark security so a list polynomial
+commitment scheme effectively does not bind P to a single low degree polynomial
+as required by a polynomial commitment scheme but instead bounds P to a small
+set of low degree polynomials in the sense that when the verifier requests Q
+of R the prover does not necessarily have to answer consistent with h of R
+for a fixed low degree polynomial H but
+instead is able to choose from a small set of low-degree polynomials and answer
+with any one of those polynomials from the small set evaluated at R and this uh
+so-called list polynomial commitment scheme turns out to be enough for snark
+security so it is a bit of a simplification or a lie to tell you that
+every single snark out there combines a polynomial IOP with a polynomial
+commitment scheme in fact it often suffices to use a list polynomial commitment scheme at any rate so people
+are using this weaker primitive called a list polynomial commitment scheme in
+order to be able to conjecture that each fry verifier query provides a log of 1
+over rho bits of security rather than less than one bit of security and
+thereby keep the verification costs smaller than if they used a fry as a
+true polynomial commitment scheme that binds the prover to a single polynomial
+of a specified degree bound okay now let us talk in detail about the Fiat
+Shamir transformation in concrete security um because uh when uh fry is deployed
+um today in blockchain applications uh it is as far as I know always deployed
+non-interactively by applying Fiat Shamir to it and of course the Fiat shimir transformation is used in almost
+all snarks with the notable exception of growth 16 every other snark in use today as far as
+I am aware there might be some small exceptions that are related to grow 16 will take an interactive succinct
+argument and render it non-interactive with Fiat Shamir so let us discuss Fiat
+Shamir in more detail than any of the previous lectures okay so I am going to
+remind you how Fiat Shamir works I am going to describe it for Simplicity in
+the context of a three message in interactive protocol where the approver speaks first so in the interactive
+protocol the approver sends a message Alpha to the verifier who responds with a random challenge beta and then the
+prover responds to Beta with a final message gamma now in order to render
+this interactive protocol non-interactive what the fiatrimir transformation will do is effectively
+replace beta with a hash evaluation with
+the hash function modeled as a random Oracle R so specifically rather than the
+verifier choosing beta and sending it sending it to the prover beta will be chosen by evaluating the
+random Oracle think of that as a cryptographic hash function at the approvers first message in the protocol
+Alpha now if you want the resulting non-interactive argument to satisfy something called adaptive security which
+means it is secure even if the the adversary can select the input X fed to
+the verifier you better include x in the uh Tuple being hashed in addition to the
+prover's first message this is actually a mistake that has appeared many times
+over many years including recently in many snark deployments and so please don't make that mistake
+yourself if you omit X that X here is the verifiers public input if you omit
+it from the FIA chamir hashing you will not have adaptive security that is you will not have security against approver
+that can choose X adversarially for the non-interactive argument Okay so
+uh whenever you apply the Fiat Shamir transformation uh the following attack
+is always available for a cheating prover uh so this is often called the
+grinding attack on fiatrimir so a cheating prover making a false claim
+um Can iterate over uh all first messages Alpha uh until it finds one
+that hashes to a lucky uh verifier challenge beta by a lucky verifier
+challenge beta I mean one for which the cheating prover can efficiently find a
+response gamma that will convince the verifier to accept Okay so in this
+grinding attack right the prover just you know it it it tries uh you know some
+first message Alpha sees if the resulting hash value is lucky if not it
+tries another Alpha uh if if that next Alpha doesn't get hashed to something
+lucky it just tries another Alpha and another and another just keeps trying until it finds a lucky Alpha okay so as
+an example um suppose you apply the Fiat Shamir transformation to an interactive
+protocol with 80 bits of statistical security by which I mean the soundness error of the interactive protocol is at
+most 2 to the minus 80. this this grinding attack will have achieved the following trade-off between work
+expended and success probability of completing the attack so uh with 2 to
+the B hash evaluations the grinding attack will succeed with probability uh
+2 to the minus 80. plus b okay so for example with 2 to the 70
+hashes a cheating prover can successfully find
+a convincing proof for any false statement with probability about 2 to the minus 10 which is about one over one
+thousand okay so basically every time uh the prover tries a another first message
+Alpha it has a probability of about 2 to the
+minus 80 of that Alpha being lucky meaning it hashes to a lucky Challenge
+and it only has to get lucky once so this particular trade-off between
+computational effort expended by the attacker and success probability of the
+attack should be contrasted with the trade-off achievable for other
+cryptographic Primitives configured to the same quote security level so for
+example with a collision resistant hash function configured to 80 bits of security the fastest Collision finding
+procedure should be a birthday attack if the hash function is well designed and
+the computational effort versus success probability trade-off here looks quite
+different than when attacking the Fiat Shamir transformation so specifically when a birthday attack performed two to
+the K hashes when attacking a hash function configured to 80 bits of security it
+will succeed in finding a collision with probability of only two to the 2K minus
+1 6 60. so this is quadratically worse than the success probability of the
+grinding attack against Fiat Shamir so for example with 2 to the 70 hash evaluations
+the birthday attack will find a collision in a hash function configured
+to 80 bits of security with a probability of only 2 to the minus 20 which is about 1 over 1 million rather
+than 2 to the minus 10 which is about one over one thousand and this difference in success
+probabilities for a given amount of computational effort can make a dramatic
+difference in the expected profitability of an attack when the attacker has
+budget limitations that prevent it from expending enough work to succeed with
+probability close to one so if an attacker is limited to say 2 to the 70
+hash evaluations it is certainly going to matter a lot to that attacker when
+determining whether or not to launch an attack whether the attack will succeed with probability 2 to the minus 10
+versus 2 to the minus 20. so the point here is that when protocol designers
+refer to 80 bits of security or Lambda bits of security in general they are
+referring to the logarithm of the number of computational steps required to
+succeed in an attack with probability close to one but that does not specify
+how quickly the success probability of the attack increases as the amount of
+computational effort invested in the attack increases and in fact for the
+grinding attack on the Fiat Shamir transformation the situation is
+considerably worse if you are a protocol designer looking to design a secure
+protocol then the situation for many other cryptographic Primitives including
+as we've discussed here finding collisions inclusion resistant hash functions and breaking the discrete
+logarithm problems that is finding uh X from G to the X for a group generator G
+I think an important question that any protocol designer will encounter is how
+many bits of security is enough and in order to answer that question one must
+understand how many hash evaluations are feasible today and at what price so all
+I can do in this lecture is provide just a couple of data points to give you a sense so today the Bitcoin Network
+performs uh just about 2 to the 80 shot 256 hashes every hour or so and at
+current bitcoin prices uh those tip those hashes typically earn less than a million dollars worth of block rewards
+now obviously the world as a whole has invested enormous sums of money into
+Asics to make uh Computing uh these hashes as fast as possible but
+nonetheless this should give some sense uh that uh with enough investment in
+Asics at least 2 to the 80 hash evaluations are in fact quite cheap and
+can be done quite quickly as another data point a research paper reported
+that in January 2020 about out 2 to the 64 sha-1 evaluations cost about forty
+five thousand dollars on gpus that would put two to the 70 Xiao one evaluations
+uh at about three million dollars and today uh the rental of gpus is likely to
+be cheaper than it was in January 2020 when many of those gpus uh were
+profitably being used to mine ethereum and today they will not be
+um okay so that should just give a sense of why standard cryptographic practice
+is to set the number of bits of security to be a 128 or more that puts the number
+of hash evaluations used to attack a Fiat Shamir based snark set to that
+security level substantially beyond the reach of uh current hardware and also
+leaves a bit of a buffer in case better attack attacks are found than what are known today
+finally let me discuss or different security levels might be appropriate if
+a protocol is being run interactively versus if it is being Fiat shamired so
+that it is can be run non-interactively uh now a polynomial commitment scheme
+such as fry run run interactively at Lambda bits of security has the
+following guarantee so assuming the cheating prover cannot find a collision
+in the hash function used to for Merkel hashing then a lying prover cannot pass
+the verifiers checks with probability better than two to the minus Lambda now a key Point here is that a a cheating
+prover attempting to attack the interactive variant of fry must actually
+interact with the verifier to learn the verifier challenges and thereby find out
+whether the attack will succeed okay put another way the approver cannot know if
+it's at attack will succeed until it actually speaks to the verifier to learn what the verifier challenges are
+okay as an example if fry is run interactively at 60 bits of security
+then with probability at least one minus one over a billion or so the verifier
+will reject at least one billion times before the cheating prover succeeds it
+seems unlikely that a verifier would continue interacting with a prover that
+has been caught in a lie over one billion times moreover the interactive protocols might
+simply take too long to run for any prover to execute over a billion attacks
+in a reasonable amount of time so as one data point one billion ethereum blocks
+should require about three years to create assuming ethereum is creating blocks at about one block per 12 seconds
+okay in contrast if you apply Fiat Shamir to an interactive protocol such as fry that was run at Lambda bits of
+interactive security before fiatrimir was applied the resulting non-interactive protocol is a much
+weaker security guarantee essentially the key point is that a lying prover can
+attempt the grinding attack silently so unlike in the interactive case
+um the prover can basically just uh perform uh something resembling you know
+the interactive uh attempts at attacks uh in its own head um without uh revealing to the verifier
+that the attack is occurring so rather than the actual verifier having to
+reject the prover over one billion times for the prover to have even a one in a billion chance to succeed uh the prover
+can just attempt the grinding attack uh you know meaning with one hash evaluation required per attempt uh two
+to the 60 times which is uh entirely feasible on Modern Hardware
+um without uh any verifier ever knowing that the approver was attempting an
+attack in the first place as a result much higher security levels are required
+in the non-interactive setting than in the interactive setting so for example
+UH 60 bits of security might be totally fine in the interactive setting unless
+uh very very very large sums of money on the line think multiple billions of dollars perhaps
+whereas in the non-interactive setting UH 60 bits of security is not going to
+be enough unless the payoff is really minimal because again uh 2 to the 64 sha-1 hash evaluations three years ago
+cost under forty five thousand dollars finally I want to discuss an issue that
+while well known uh I feel may be nonetheless underappreciated today and
+that is that the Fiat Shamir transformation can lead to a tremendous loss of security when it is applied to
+many round interactive protocols to render them non-interactive in fact when
+applying the fiatrimir transformation to some many round protocols that have negligible soundless error the resulting
+non-interactive protocol may be entirely insecure here is the canonical example
+of such an interactive protocol consider the empty language so this means that
+the verifier should always reject literally nothing should be accepted by the verifier and let us consider the
+following uh somewhat silly interactive protocol for the empty language so the
+prover in this silly interactive protocol sends a single message which
+I'm going to call a nonce because the verifier is just going to ignore the prover's message
+so after the verifier receives and ignores the prover's message the verifier then tosses a coin and Halton
+outputs reject if the coin comes up heads but Halton outputs except if the
+coin comes up tails okay now the soundness error of this protocol is one half because with
+probability a half the verifier uh winds up uh accepting uh when it really should
+never accept Okay now if you sequentially repeat this protocol Lambda times and accept only if every
+repetition of the base protocol accepts the soundness error Falls from one half and one repetition to one over two to
+the Lambda because the probability that all Lambda runs except is exactly one over two to the Lambda
+now um consider applying Fiat Shamir to this lambda-round protocol obtained by
+sequentially repeating the soundness era half protocol Lambda times
+applying Fiat Shamir to this protocol will render the protocol non-interactive
+however the resulting protocol is totally insecure in fact a cheating prover can find a convincing quote proof
+for the non-interactive protocol with only order Lambda hash evaluations the
+key idea of the attacker is to execute a grinding attack on a single repetition
+of the base protocol at a time rather than attempting to quote grind upon all
+Lambda repetitions all at once so this is what I mean by that so the attacker
+can grind on the first repetition of the base protocol alone first that means
+iterating over nonses that the prover might send in the first repetition of the base protocol on until one is found
+that hashes to Tails so in expectation the attacker only has to try two different nonses before it's going to
+find one that hashes to Tails once it finds one that hashes details it can fix that nonce let's call it M1 for the
+remainder of the attack once it has succeeded in finding M1 it can then execute a grinding attack on the second
+repetition of the protocol by searching for a nonce M2 such that M1 comma M2
+hashes to Tails once it finds such an M2 it will have effectively passed the
+verifiers checks in the first two repetitions of the base protocol it can
+fix M2 and move on to finding an M3 such that M1 comma M2 comma M3 hashes to
+tails in this way it can find a successful nonce Mi for each repetition
+I of the base protocol uh iteratively it does not conceptually it does not have
+to guess lucky M1 M2 up to M Lambda like
+all at once it can sort of grind until it finds an M1 that's lucky then it can grind until it finds an M2 that's lucky
+then it can grind until it finds an M3 that's lucky and so on and so forth and in expectation only two attempts at
+finding each Mi are required um so the takeaway from this example is
+that applying the Fiat Shamir transformation to many round interactive protocols can lead to a huge loss of
+security whereby the resulting non-interactive protocol is totally insecure okay now it is known that if
+the many round interactive protocol uh can be shown to satisfy a stronger
+notion of soundness called round by round soundness then in fact it is safe to apply Fiat
+Shamir to the many round protocol that is uh showing that an indirect protocol satisfies round by round soundness and
+rules out the kind of catastrophic security loss that applying Fiat Shamir to this kind of silly sequential
+repetition of the base protocol for the empty language uh demonstrated
+intuitively what is round by round soundness a protocol is round by round sound if an
+attacker uh in the interactive protocol in order to convince the verifier to
+accept has to somehow get lucky all at once in sort of a single round it can't
+kind of space out its luck across many rounds by getting a little bit Lucky in many different rounds okay so this
+sequential repetition um of a soundness one half protocol that I presented before is the canonical
+example of a protocol that is not round by round sound in the sequential repetition which is not round by round
+sound we saw that the attacker can get a little Lucky in each round and succeed right it only has to get the verifier to
+toss tails in each round so in each round it gets lucky sort of with probability of half and it manage if it
+manages to string Lambda many uh you know slightly lucky rounds together it manages to convince the interactive
+verifier to accept so that is the epitome of not being round by round sound there are our example protocols
+known that are round by round sounds despite having many rounds a key example
+is the some check protocol that I covered in detail in lecture four this is a logarithmic round protocol
+logarithmic sort of in the size of the statement being proven and it is known to be round by round sound so the
+proverb kind of has to get very very lucky in a single round it can't get a little bit Lucky in each and every one
+of the logarithmic rounds and hence we know that applying the Fiat Shamir transformation to the subject protocol
+leads to a sound uh non-interactive protocol in the random Oracle model something similar is known for
+bulletproofs this is a logarithmic round proof of knowledge that's commonly used
+as a polynomial commitment scheme which upang discussed I think two lectures ago so one one thing I do want to mention is
+that fry is a logarithmic round interactive protocol that as far as I know is is currently deployed exclusive
+non-interactively by applying the fiatrimir transformation to it and it has not been shown to be round by round
+sound at least this has not been published so this is kind of a gap in the known security analyzes uh which I'm
+actually hoping to patch soon with uh with a new preprint so it's not that I think fry is not round by round sound
+but I do think that for a pervasively deployed protocol such as fry which has deployed non-interactively we should
+know for sure that it's round by round sounds to rule out the possible
+catastrophic loss in security that we know is possible when applying Fiat
+Shamir to many round protocols so as a general takeaway of this coverage of fiatrimir uh any uh protocol
+designers that are obtaining a snark by applying the fiatrimir transformation to
+an interactive protocol was strictly more than three messages should show that the protocol is round by round
+sounds if they want to rule out a major loss of security that comes from the
+application of the fiatrimir transformation to the uh many round protocol
+I do think there is an under emphasis on such analyzes today whereby protocol
+designers uh are simply assume that there is zero loss of security when
+applying the Fiat Shamir transformation even to protocols with strictly more than three messages when that can only
+truly be justified if it is shown that the interactive protocol is round by
+round sounds otherwise even in the random Oracle model there might be a
+significant loss of concrete security when Fiat Shamir is applied okay that is the end of today's lecture
+next lecture will cover snarks from linear pcps such as growth 16 the
+following lecture will cover snark composition and recursion and after that I believe we are turning to Applications
+of snarks thank you very much
