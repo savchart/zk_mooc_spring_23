@@ -1,0 +1,845 @@
+hello everyone welcome back to our mooc on zero knowledgeworks I'm Yukon John and today I'm going to talk about
+polynomial schemes based on error occurring codes recall that a common Paradigm to
+construct the efficient snarks for General circuits is to combine a polynomic Amendment scheme with an
+appropriate polynomial interactive article proof such as the Planck IOP and the interactive proofs as we've seen in
+previous lectures last time I started this section on panamic movements and talked about the
+classical protocol of the kcg Panama commitment the Proto utilizes the bilinear pairing
+and has this trusses setup step to compute the global parameters with this structure and the trapdoor image
+and the key idea of the scheme relies on this polynomial equation to compute the quotient polynomial Q of x
+and the scheme has a very small group size and the very fast verifier time in practice
+the proof only consists of a single element in the group and the verifier only needs to compute a single parent
+equation in addition I also talked about other polynomial schemes without classes setup
+that are based on the Square log problem those include bulletproofs hierarch
+story and dark in this lecture we are going to see a
+new class of pandemic name schemes based on error green codes and to give you some motivations
+here I'm showing you the pros and cons of these schemes on this slide
+so on the positive side we are not aware of any efficient algorithms on quantum
+computers to break the assumptions of these schemes so the schemes are plausibly post Quantum I like those that
+are based on this gridlock problem in addition the poorer time of these schemes tend to
+be fast because they do not require any group exponentiations
+the proof only computes hash functions Merkle trees and some field additions multiplications than fft
+finally the size of the global parameters is very small and there's no traffic setup all we need to do is to
+sample a hash from a family of hash functions and the size is constant
+but of course these nice properties come at the cost the first drawback is that these schemes
+you already have a very large group size and as you will see later we are talking
+about several megabytes to tens of megabytes in practice and another drawback is that because of
+the lack of the algebraic structure these proofs do not have this
+homomorphic property and they are hard to aggregate in a similar way as we've seen last time
+in the variance of kg Panama commitments to support multiple evaluations
+so to understand the schemes based on error current codes here's the plan of this lecture there will be three
+segments in the first segment I'm going to talk about some background on error occurring codes
+and with that background in the second segment I'm going to present the polynomial schemes using any error
+current codes and in the last segment I'm going to talk about this interesting line of work
+to build linear time encodable code based on expanded graphs and the polynomial schemes and zero
+Network group schemes using this type of code can have a linear time prover in
+terms of the number of field additions and field multiplications so let's start with the background
+the error current code is actually well studied Topic in the area of the information Theory and coding Theory it
+can be used to correct errors in the transmission over the network and that is why it's called error credit code
+an airplane code encodes a message of size K to a code word of size n where n
+is strictly larger than k an important property of the airplane code is the concept of a minimum
+distance so the distance between two code words is the number of different locations
+between the two code words and this is called Hamming distance and if you take the minimum of the
+distance between any two code words and call it Delta that is the minimum distance of this error current code
+and this NK and Delta are three important parameters of the code and we
+already call it NK Delta code and note that there's another important
+parameter is the alphabet of the code whether it's defined over a binary or a
+final field but I'm omitting this parameter in this notation
+so to give you an example the simplest example you're using is this repetition
+code and here I'm using example with a message of size 2 over the binary values
+and the codeword size 6. so essentially we are repeating each symbol three times
+to encode the message so that's why we have the encoding of a zero zero gives you all zeros and
+encoding of zero one is zero zero zero one one one and similarly we have the encoding of one zero and coding of one
+one and that's all possible messages of a lens 2 over the binary key
+so that is not hard to see that the minimum distance of this code is actually three because if you take any two code words
+from these four possible codewords we have at least three locations between
+any two code words that are different and because of this nice property we can
+actually correct one error during the transformation suppose that
+because of the noise level it can only introduce at most one error
+during a transmission and the code word we receive is this is what zero one zero one on one
+then because of this distant property of the repetition code there is only one
+message whose code word is one error away from this code word that is zero
+one and the code word is uh zero zero zero one one and that is why we are sure
+that the original message must be zero one even with such an error during the transmission
+so that is the original application of the error create code and the process to derive this original
+message from a received code word is called decoding algorithm and an interesting thing to note here is that
+in our panamic scheme we are not going to use this decoding algorithm at all so
+because of that we can actually use arrogant codes without efficient degree
+so next I'm just going to uh Define some additional terms so we have this rate of
+a hurricane code AS K Over M so essentially it's representing the ratio
+of a meaningful message when we have a code word of size k a size n sorry
+so so this is basically measuring out of n symbols we only have a k symbols
+representing the message and this is number between zero and one and apparently we want it to be as close to
+one as possible and we also have this term called relative distance is basically the
+minimum distance Delta divided by n so this is the ratio of encode word that is
+uh different between any two code words and again there's a number between 0 and 1 and for the purpose of the error
+correction you also want it to be as big as possible and using the same example of a
+repetition code if we have a rate of one array meaning that we are going to repeat each symbol eight times
+then from the previous example we can see that the distance of this code is a
+and therefore the relative distance is the Delta Over N where n equals to K times a so the distance is 1 over K and
+turns out this is actually not very good because it decays as the message size K
+increases so it's not a synthetic good code and as we said we want both the read and
+the relative distance to be as big as possible but unfortunately there is the urea trade-off between the rate and the
+distance of a code intuitively speaking increasing the rate will actually decrease the relative
+distance of the code and we have well studied bounds on the relationship between the rate and the relative
+distance of a code under different settings
+so the last concept I want to introduce is this linear code and the linear code
+is actually the most common type of code that we are using in practice so for linear code we have an additional
+requirement that any linear combination of two of code words is also a code word
+and because of this property it's equivalent to say that the encoding
+algorithm can always be represented as a vector matrix multiplication between message M and a generator Matrix of size
+K times n and because of all these cool techniques
+in linear algebra the linear codes can be analyzed to have a nice properties
+and that's why it is the most common type of code we use in practice and and now the implication of the
+linear code is that the minimum distance is the same as the number of the least number of
+non-zeros for any non-zero code words and we call this as the weight of the codeword
+and this is actually not hard to see because the distance is defined as the Hamming
+distance between any two code words and because the code is linear the subtraction of those two code words is
+also a code word so that is saying that the number of different locations
+directly implies another code words with that many non-zero elements so therefore
+the minimum distance between any two code words is just equivalent to the minimum weight of a non-zero code word
+for a linear code so that's something to keep in mind
+so finally I'm going to show you this classic construction of the linear code called read Solomon code and this is
+actually a very important Construction in the literature it has many applications in to build cryptographic
+Primitives such as the zero nerve proof schemes of lihero and Stark and also for
+secret sharing and other applications in cryptography so here I'm defining re-sum code over a
+final field modular prime number P and the encode algorithm takes a size K message encoded
+as a size n a code word so the way to do it is we're going to
+view the message as a unique degree K minus one universal Nami you can think
+of it as a polynomial interpolation on the fixed set of public points of
+size okay and we are going to treat each symbol of the message as the evaluation
+at a predefined point and then we're going to interpolate it and get a unique degree K minus 1.9
+then the code word is simply the evaluation of this binomial at an point again these are predefined and public
+points for example we can use the root of unity and we're going to evaluate at Omega or mu to the two other two of mu
+to n where Omega to the N equals to one modular p and this is actually a linear code
+because the encoding algorithm can be represented as a vector matrix multiplication between the message and a
+the generator Matrix which is can be derived from the Fourier Matrix
+and there is some code has a very nice distance the distance is actually unmines K plus 1. and this is very good
+and that is because as we said in the previous slide for a linear code the
+distance minimum distance simply the minimum number of non-zero elements of a non-zero codeword
+then as each code word is actually evaluation of a Kmart degree K minus one
+universal how many locations can be zero well at most K minus 1. that is because a degree
+K minus one binomial has at most K minus language so therefore at least n minus K plus y
+locations are non-zero for a non-zero message so that is why the distance is
+this one and to give you a concrete number let's say that n equals to 2K we're expanding the message by two and
+get the code where n equals to 2K then the rate is the constant one over two that's actually pretty good in practice
+then by this derivation the relative distance is also one over two is a constant so the distance is also very
+good in practice so it turns out this is exactly the best you can achieve and thus the resolvement code is a
+synthetically good and finally the encoding time of resume
+code is order of n Times log n using the fast Fourier transform algorithm fft to
+evaluate this phenomena at these endpoints defined by the roots of unity
+so that's everything I want to talk about for error green codes
+with this background in the second segment of lecture I'm going to show you how to view the polynomic Amendments
+using linear codes to recall that this is the setting of a
+polynomial commitment we have a four algorithms the key generation commits evolve and verify and the scheme I'm
+going to show you here is derived from the papers of algero budo in 2017
+breakdown and Orion and the scheme has a square root size proof and a square root
+verification cost so the key idea of this polynomial
+scheme is to identify the Matrix structure in the polynomial evaluation
+so here I'm showing you that a matrix consisting of the coefficients of the
+polynomial from f11 all the way to F squared d square root B and I'm assuming
+that the number of coefficients of a polynomial is an exact power of an
+integer but of course you can Pat it if it is not and the reason why we are arranging the
+coefficients of polynomial in this form is that we can actually write the equation of a polynomial evaluation
+as this equation so we're going to have a two indices ing
+ranging from one all the way to square root D and then computes this uh
+product between the coefficients and the corresponding monomial evaluate that point u in this way
+and the nice property of this way of computing is that the polynomial evaluation in F of U can actually be
+decomposed into two steps so in the first step we are going to multiply
+a vector defined by this version Point U of PSI Square D with
+The Matrix of the coefficients of the polynomial and the result of this vectoration location will give you a
+vector of size square root of d then in the second step we are going to multiply that Vector with this uh another Vector
+derived from the evolution Point U and take the inner product the result will be a single value that equals to the
+invariation F of E and if you do the duration following the rules of vector
+Matrix multiplications you can see that this computation is exactly the same as the equation at the bottom
+so I'm saying here that evaluation can be viewed as this two steps of vector
+Matrix location with this observation we can actually
+reduce the polynomial commitment scheme uh to uh an argument for Vector matrix
+product so if you're good with a scheme with a square root D proof size then we
+can actually just prove the completion of the first steps so in the first step we are going to
+multiply this Vector of Square D size defined by The Invasion Point U whereas
+this uh Matrix defined by the coefficients of the 0.1 and and the result of that is a vector
+of square root d size so then the poorer can just send
+this result of the vector directly to verifier and the verifier verifies that
+the first step is actually computed correctly using this proof system and then evaluate the Second Step locally by
+mod by taking the linear product of this Vector whereas the the second Vector
+defined by the equation point of view and in this way the proof size is only this Vector of PSI Square D and the
+verify time is again square root d uh by Computing that inner product so this is
+saying that if we can have an argument scheme for this first step of vector matrix product
+where the reasonable proof size number of our time of course then we are going to have a polynomic Amendment scheme where the
+Square D process and Square D verification time so in this way we reduce the problem to this simpler
+problem of vector matrix product
+so then the focus of the remaining parts will be how can we design a scheme to
+test the computation of this Vector Matrix product without sending this
+Matrix directly to the verifier site so the idea is to use the linear
+hierarchical encode to encode this Matrix defined by the coefficients of the polynomial
+so here we are going to encode each row of this Matrix using a linear code
+so then the dimension of this original Matrix is Square D by Square D and here
+the size of the message of this linear code k equals to square root d after encoding you end up with an encoded
+Matrix and the dimension is scroll d by n where n is the size of the code work
+and for your information we are going to eventually use a linear codes with a
+constant rate so then n is the symptomatically the same as K and which is also the same that's entirely the
+same as a square root D so after encoding you're not increasing the size of this in decoding Matrix syntholically
+so with this encoding Matrix we are going to commit to this uh polynomial
+defined by this encoded Matrix and the commitments using the Merkel hash tree so recall that in previous lectures we
+explained this a very important primitive in a chordography called merkohashree
+and the construction is to compute the hash of the two consecutive
+leaves and then doing recursive being a free structure to get the root of this tree and this route is served as a
+commitment of this vector and later the poorer can actually open this a commitment
+and prove to the verifier that the leaf at a certain location equals to a particular value and the proof is
+generated by traversing this tree and returning all the siblings along the path from a leaf to the root and the
+verifier can actually reconstruct the root will only the information from siblings and the proof size is only
+logarithm in the size of the vector so this is the merko tree and the way to commit to this
+polynomial is first we are going to encode this binomial row wise using linear code after that we are going to
+use the Merkel tree to commit to this encoded Matrix column wise we are going
+to view each column as well leave of the Merkel tree and then build this Merkel Tree on top of
+this a matrix and then send this hash group hash to the verifier as commitment of
+the polynomial and using this commitment you can imagine later that we can actually open
+uh each column individually the program can actually send a column chosen by the
+verifier and then together with the Mercury proof and the verify I can verify that the column is not authored
+it's actually indeed as committed in the first place but so this is the commitment step of the polynomial that
+I'm describing and because of this coming step then actually the key generation of this panamic image scheme
+is very straightforward all we need to do is to sample a hash function that will be used for democracy and that's it
+so there's no choices set up and the size of the GoPro Global parameter is only constant
+then the most complicated uh protocol of this phenomic scheme is this evaluation
+together with the verification and I'm going to explain the plenty of
+time explaining these steps in details so the Evol algorithm can be roughly
+divided into two steps and the first step is called a proximity test or proximity checking
+and the main goal of this step is to test if the committed Matrix indeed
+consists of these Square decode code words encoded row wise
+and the reason for this check is that recording the communion phase an onus
+poorer should commit to this Matrix encode as encoded from the original
+Matrix defined by the coefficients of the Python but if the Brewer is malicious
+he may not follow the algorithms via this we were described in particular it
+is actually not hard for the verifier to check the size of this Matrix for example by returning One path of the
+Merkle tree but even if the Matrix is the size of the Matrix or dimensional
+Matrix is as specified each row may not be a valid codeword of
+the linear code and malicious Brewer could generate any arbitrary
+Vector of length n and then put squarity of these vectors and commit it using
+mercury and send it to the verifier they're not even code words of this code and again using the researment code as
+an example if the poor is honest then each row should be a resolume encoding coding in
+particular polynomial evaluated at endpoints but a malicious program may just commit to any vectors
+of length and and they may not be on the same polynomial of a degree K minus 1.
+so that is the purpose of this first proximity test trying to ensure that the
+committed Matrix is indeed encoded as specified by the commitment algorithm
+and the way to do it is as follows so first the verifier is going to send a
+random vector of size square root B I'm using R1 and R2 all the way to Rd to
+denote it here and the verifier is asking the plural to return the result of this Vector times
+the encoded Matrix so then the result of this completion is
+a vector of size and the same as the size of one row if the Proverbs are almost
+after that the verifier is going to pick several random columns and ask the prover to open these columns
+and recall that in the commitment phase the product already commits to the columns using a Merkel tree so in this
+step the proof also sends the corresponding workout proofs in particular path from the leaves to
+the root so that by checking these Mercury proofs the verifier can make sure that these random selected columns
+are indeed consistent with those committed in the first place the poorer cannot change
+the values of these columns at all then finally the verifiers is going to
+perform the following three checks the first check is that this Vector returned by the
+program in the first round is indeed a code word of the linear code and this is true if the approve is
+honest because of the property of a linear code any linear combination of code words still gives you a code word
+so this is actually a linear combination of R1 times the of
+the first row and now plus R2 times the second row and so forth and this is still should give you a code word if the
+Brewer is honest second the verified check that the columns are indeed as committed using
+the Merkle tree and this is as I explained before that can be done by checking the Merkel path proof to ensure
+that the program cannot change any value of these committed columns finally the verifier is going to compute
+the inner product between this random vector and each column
+and by the rule of a vector matrix multiplication you can see that
+if the answer is almost computed then the inner product between this Vector R and each column should equal to the
+corresponding element of this Vector returned by the proofer
+and the verifier is checking this relationship for each column that is
+chosen randomly by the verifier itself and if all of these three checks pass
+then we have the overwhelming probability the verifier can actually conclude that the committed Matrix is
+indeed as encoded uh in the commitment algorithm we described before so that is
+this description of this approximity test
+so now why is this a protocol secure so here I'm going to sketch the
+intuition of the soundness proof and it's heavy relied on the property of
+the linear code so uh as Europe we are going to start with a
+contradiction suppose that the proverchies so this committed Matrix is
+actually not encoded a matrix as specified the product actually pick any
+values in the vectors and then put them together and commit it using a Markov tree then we are getting the condition on
+whether this Vector in the first run is correctly computed or not
+so if this Vector is correctly computed based on this uh like a fake Matrix
+chosen by the poorer then by the property of a linear code it
+can the the vector measures product as a credit computed by the approver
+cannot be a code word so then the check one will fail so this is saying that this is a simple
+strategy so the proof is cheating is committing to a run Matrix then you just
+can't follow the Run Matrix and compute the inner product between this random value vector and The Matrix
+and the result won't be a code word because of the amino property of the the code that won't pass check one
+which means that the adversary is left with only the second option
+which is the poorer has to return a wrong Vector that is not the result of
+the inner the product between this vector and this a matrix committed by the program
+and if that is the case then we have this nice property of the distance of
+the codeword because this ROM answer still has to be a code work to pass
+check one then by the minimum distance property of a linear code there should be many
+locations that are different from the correct answer
+for example if you're using a resolving code again with a distance relative distance by half then that means that
+half of the locations are actually wrong actually different from the
+correct answer of this uh Vector matrix product because of that by the second check the
+columns are the same as committed you cannot lie about these uh columns that are open
+by the verifier then it means that the probability of passing the third check is extremely
+small that is because if half of the locations are actually different from the correct answer what is the probability of
+opening a random column and still passing the verification of
+the senior product the inner product between this random vector and this column is actually
+correctly computed given the fact that half of locations are actually wrong but the probability is uh one-half is a
+constant so then by opening multiple columns saying that 100 columns the
+probability of passing this track three Decay is exponentially so in that way we can actually achieve a negligible
+soundness error and so that the whole soundness can actually uh
+be a proven to have a negligible cheating probability so that is the intuition behind this uh
+proximity test so this proximity test algorithm was
+actually introduced independently by these two papers the first one is the herald and the second one is by Bullet
+out in 2017. and in the hero they called this one as
+an interleave test and the protocol uses the reinstallment code where the encoding time of Quasi linear out of a
+login and independently in Buddha about in 2017 they also proposed a similar
+proximity test algorithm and they call it the ideal linear commitment model
+and based on this model they actually designed a scheme for a general purpose
+it's not for a circuit computation and they were using a linear time encodable code instead of resolvement code which
+I'm going to introduce this in the third segment of the lecture and this actually gives the first snog with a strict
+linear poor time in terms of field additions and field modifications and by the way the schemes proposing
+these two papers were actually for general purpose snarks and here I'm actually presenting this technique and
+use it to construct the polynomial commitments as a specialized protocol
+which was actually proposed in the follow-up papers such as a
+breakdown in Orion that I'm going to highlight later
+so um that that is just the intuition not the sound is proof and turns out in the
+formal proof things are actually much more complicated and here I'm just showing you the the kind of key
+differences and I refer you to read the details in the paper of Ali Herald
+so turns out in the formal proof it is actually we can't
+prove that the program cannot change a cheat at all like we can't catch the
+cheating improver if immunity changes like one value of this encoded Matrix
+what we can prove is that if the committed Matrix C is very far
+away from any code work that is encoded as specified by commitment we can
+actually catch it with an overwhelming probability in particular we Define another
+parameter called e that is related to the distance of this linear code so e is
+less than Delta over 4. and then for for any number e
+then if the committed Matrix is E4 from any
+codeword meaning that if we take the minimum distance of a any
+row whereas any code word in this linear code and if that distance is actually
+e far away meaning that at least e locations are different then we can actually catch the Brewer that should
+improve with an overwhelming probability why is that or in the form of proof we can show that if this Matrix C is e far
+from a real code word then the vector matrix product between a
+random Vector R and is encoded and this committed Matrix C the result we call it w that is exactly
+the vector returned by the freeware as I specified in the protocol the problem is here that the probability of that Vector
+is equals to any code word is less than or uh or equal to e plus one over the
+size of this finite field so this is extremely small this is negligible which means that if the committed Matrix is E4
+from any code word as a matrix then this Vector is also e Far From Any code word
+with high probability so that is the difference of the claim from the intuition to the form of proof
+so then if you rule out this possibility then the remaining part is exactly the same as the intuition but conditioning
+on this this Vector W is actually a close to any sorry E4 from any code word
+then the probability of passing check 3 for T random columns Decay is
+exponential ability so in particular because uh like e Over N fraction
+of the values are different from the real result then the probability of passing
+all checks or for all T random columns is one minus E or n to the power of T
+and that decays exponentially with t and this is exactly the reason why we need a
+linear code with a constant relative distance and so this e is related to the distance
+of the code so you can roughly think of this as an is related to the relative distance and if you have a constant
+relative distance this number is a constant and then we can make it negligible by repeating the tag for T
+columns so 100 columns or 500 cards otherwise if the distance of
+the code is not good then we cannot make this probability negligible so that is
+why we need a linear code with constant relative distance such as resolvement code
+and by the way in a recent version obviously Herald the authors further show that we can actually choose any e
+that is less than Delta over 3 as a parameter in this proof so that improves
+the proof size by some some Factor so that is the
+reason why there's a proximity testing is working we can actually show that the
+committed Matrix is actually close to a code word that is encoded using the
+commitment algorithm another interesting thing I want to
+mention here is that we can actually perform one optimization in this proximity test
+so the optimization is that instead of sending the code word
+which is the result of this Vector matrix product the poor work actually send a message behind this codeword to
+the verifier and then the verifier can actually use
+this message it can actually encode this message to recover this code word that was supposed
+to be sent by the poor and then perform the remain checks and
+why this is a nice optimization first this actually reduces the size of the proof because instead of sending a
+vector of size n we now only need to send a site a message of size on VM only
+K that is a equal to a square would be another optimization is that the
+verifier now doesn't have to perform the first check where this Vector is a code word this checks perform implicitly because
+this is it is literally encoded from a message sent by the program so it has to be a code word
+and another interesting observation is that by the property of a linear code this message of size Square D is exactly
+the same as the result of the vector matrix product between this random Vector with the original Matrix that was
+defined by the coefficients of the polynomial instead of the encoded Matrix and it is
+actually not hard to check due to the property of the linear code so this is a a nice optimization to keep
+in mind for the remaining of the product
+so now with the first step of this proximity check where the overwhelming
+probability the verifier knows that this committed Matrix must be close to an
+encoded Matrix then the second step of this Panama commitment is called the consistent test
+or consistency check the purpose of this step is to really
+test that the inner product the the vector matrix product between this uh
+Vector defined by the equation point and this Oriental Matrix equals to the
+claimed result a vector of a size square root d
+and turns out the algorithm the protocol of this step is almost the same as everything we need
+for the proximity test so in order to do that first the poorer
+is going to send the message m to the verifier where the message should be equal to the vector
+matrix product between this Vector defined by the version point and the original
+Matrix defined by the coefficients of the polynomial of Square D by Square D
+before the encoding and the result should be a vector of size Square D and that is
+the message of a linear code then the verifiers is going to encode this message to get a code word
+of a length n here and as I explained in the previous slide using this
+optimization this Vector of size n should be the result of this Vector defined by Imagine
+Point U times this encoded Matrix of size Square D by n here
+and this is exactly the same as the proximity test build optimization I
+introduced after that the verifier is going to pick several random columns and ask the
+poorer to return these columns back and recall that in the commencement phase the program commits to these
+columns using mobile 3. so in this set the poor further proves that these columns are actually has the
+corresponding Mercury path so that approver cannot change any value of these committed columns
+and finally the verifier is going to perform exactly the same three checks as
+the proximity test so first this Vector is actually called word second The Columns are as committed
+in numerical tree and third the inner product between this Vector defined by the division Point U and each column is
+consistent with the corresponding location of this code word and the reason why I'm actually removing
+this first two texts is that we don't need to do them anymore so
+the first check is embedded in this encoding because of the optimization I
+mentioned the program needs to send the message to the verifier and the fact that verify encodes it to the code word
+already tells the fact that this Vector is a code word the second one we also don't need to do
+it because the columns were opening here are exactly the same as ones in the
+proximity test the verifier doesn't have to pick new randomly chosen columns we are going
+to use exactly those columns opened in the proximity test and we don't need to verify the Mercury passes anymore
+so the only difference the only additional step to perform is the third one is again an inner product but this
+time is the unit product between this Vector U here defined by the evaluation Point instead of a random Vector chosen
+in the proximity test and we are going to do the inner product between this one and each column and see
+that it is consistent with this code word computed from the encoding of the
+message and again if this test test is true then we can conclude that this message m
+is the product between this Vector defined by U and the original
+Matrix defined by the coefficients of the polynomial before encoding so that can please
+the description of the second step of the consistency check
+so to sketch the soundness of this step first by the proximity test we already
+know that this committed Matrix C is very close to our code word then in order to prove knowledge
+soundness the key idea is that although we actually don't know whether this Matrix is indeed exactly the same as
+and encode The Matrix because it is close to a code word then it is actually enough to actually build
+an efficient extractor to extract the coefficient Matrix defining a
+polynomial and this instruction is using the Mercury commitment and also the efficient decoding algorithm to decode
+this committed Matrix because it is close to a code word then there is a
+unique a coefficient Matrix F so that we can actually track F such that the vector U
+times f equals to this message M returned by the poor and that completes
+the first step of this Vector Matrix uh product argument and this is with an overall probability
+so that is the intuition of the soundness of this second step
+and uh if you you're interested in the formal proof please feel free to refer to the papers for more details and I'm
+not going to talk about the formal proof in this lecture
+so to put everything together this is the kind of the algorithm of this entire
+polynomial movement so in the key generation we are just going to sample a hash function from a family of hashes
+and to commit to a matrix we are going to encode the coefficient Matrix of f row wise with a linear code and then we
+are going to compute the Mercury commitment on The Columns of this encoded Matrix
+and then the Evol and the verify algorithm are actually a kind of an interactive process
+so there are two steps a proximity test and the consistent test in the proximity
+test we are going to compute the random linear combination of all the rows using the random challenge by the
+verifier and the verifier is going to check is consistency with t random columns and this guarantees that the in
+the the committed Matrix is actually close to encoded Matrix
+then the second step we are going to perform this consistency check and we are going to use exactly those
+columns opened in the first step and checks there that the inner product between
+the vector U defined by the version Point U with these columns is consistent with
+the answer that encoded from the message app so in this way we can make sure that U
+times think the coefficient Matrix f equals to n and to complete the polynomial
+evaluation we can perform the Second Step locally on the verifier side so the
+verifier simply computes the inner brother between the message M and the second half of the vector defined by
+this version point and I'm just going to call it U Prime for Simplicity
+and if you still record a derivative derivation we showed in the very
+beginning there's two steps of the vector matrix product and the inner product gives you the evaluation F of U
+if the prover is honest so that completes the entire description of this
+polynomial commitment and this also shows you kind of the necessity of this proximity test under
+consider check so one question I already got when seeing this protocol is it looks like
+the proximity test and consistency tests are almost the same
+we are using the same open columns and we are checking the inner products between these columns and the
+corresponding Vector so can we just perform only the consistent sets without a proximity test well the answer is no
+and the interior speaking the reason is because this U is not randomly generated
+it's actually derived from the inversion Point u in a very well structured way
+and the disillversion point is not from a randomly chosen from a large domain
+random meaning of final field then where the consistent sets only the poor worker actually cheat
+if you know some information ahead of time about the evaluation Point you're going to choose
+and that is why this proximity test is necessary so no matter what will be the
+evasion point we are going to run this proximity test using random challenges from the verifier and this guarantees
+that the committed Matrix is actually close to a encoded Matrix and then we can
+perform the consistency test and extract this witness such that the vector
+measured product is a equals to n with an overwhelming probability
+so then next let's see the properties of this polynomial scheme based on the
+linear code so the key generation is very efficient it does not require any trusses set up
+and the merely sample is a hash function so the size of the global parameter is constant
+in the commitment there are two steps so first we are going to encode this Matrix
+row wise and the complexity is dominated by the encoding algorithm of the linear code so if you're using the resolvement
+code for example then the encoding complexity is order of D Times log B uh we are talking about field additions
+and modifications alternatively we can use any linear code with a good relative
+distance in particular constant relative distance so then if you're using linear time in color code with good distance we
+can achieve a linear encoding time in this step next we are going to commit this
+encoding Matrix using a Merkle tree and this one is actually not the dominating cost we are going to compute order of D
+hashes and the commitment size is only constant the root of the Merkel tree
+the evaluation will take a order of D field addition to the modifications again and can be made non-interactive
+using the fear Shamir transformation so then finally the the kind of as I
+mentioned the drawback of this scheme is the proof size is relatively large so in the schema presenting here the proof
+size is the order of square root D and then it's because we are opening essentially one row and the multiple
+Columns of this encoded Matrix and the Optimal Solutions set the Matrix
+Dimension as square root times three square root D so the proof size is order of square root D and similarly the
+verifier time the order of a square root thank you so to show you some concrete numbers so
+this is the performance of the polynomial scheme that was actually describing the breakdown paper
+so for a polynomial of degree D equals to 2 to the 25 that is about 32 million
+uh using a linear time encodable code then I'm going to explain in the next segment
+the commitment takes 36 seconds using a single thread on a reasonable machine
+an evaluation to generate the proof only takes 3.2 seconds
+so these numbers are actually excellent in practice and there are significantly
+faster than those schemes based on display log and bilinear for example the
+kcg Panama Canal scheme and the bulletproof because it is not using any group exponentiations it's linear number
+of additions and modifications so that's very efficient but apparently the drawback is the proof
+size so using this uh scheme with the square root proof size we are talking about 49 megabytes
+concretely so this is really a big overhead and may not be desirable for
+certain applications and finally there were five times about 0.7 seconds so that's actually a reasonably fast in
+practice so before I conclude this segment I also
+want to further discuss uh several follow-up papers uh in the literature
+and that leads to this Panama Community scheme I'm describing so actually the key idea of this version
+of Panama scheme came from these two papers so recall that in the original paper of
+the lijero and this portal allowed in 2017. they were merely describing a way
+to do this uh proximity test and in order to make it work for a pandemic
+Amendment efficiently it relies on this nice observation and the improvements of
+the protocol for tensor query IOP proposed like budo kiasa and grass into London
+so in this paper the proposed this project that I was describing for tensor
+products and tensor carry and what is that so to give an example for Just Two
+dimensions that's exactly the product will be we're describing so that works for the linear product between a vector
+F and you can think of this as the coefficients of randomly and another Vector that is generated
+by the tensor product between two sub vectors of size square
+root D so U tensor U Prime and it only works for this type of inner
+products but not the general inner product for arbitrary vectors
+and and in this paper it also generalized the protocol to multiple Dimensions
+instead of just Dimension two and using this approach we can actually achieve a smaller proof size that is order of n to
+the any small constant Epsilon that is less than one and you can think of the scheme as basic
+generalization to a multi-dimensional matrix and we are performing this approximity test and consistent test
+recursively Dimension by Dimension and the the the the end result gives you
+this smaller process of other other into the ipsum instead of only Square rooting
+then uh with this a tensor IOP paper then the in the breakdown paper they
+actually introduced this Panama coming theme that I was describing earlier in this lecture based on this tensor query
+so this is the uh actually the origin of the panamic element
+and and now the important contribution of this paper is actually proposes another technique to prove knowledge on
+this and that is actually worth mentioning so recall that an interesting observation of the
+problem that I was describing is that it does not need the decoding algorithm of the linear code at all the prover sends
+the message of this Vector matrix product to the verifier and the verify encodes it to get the code word so
+there's no decoding algorithm involved so because of that we can actually use any code without efficient decoding
+algorithm and it gives a lot of relaxation on the design space of the code but unfortunately in order to prove song
+is formally especially this extractor for non-assignments we need an efficient
+decoding algorithm to extract the witness of the
+coefficient Matrix from this committed Matrix that is close to a code word if
+the decoding algorithm is not efficient the extract room B of polynomial time and it actually doesn't work so this
+paper shows you an alternative way to prove knowledge science and the approach is similar to a sigma protocol where the
+rewinding of a multiple random queries to extract this uh coefficient Matrix
+without efficient decoding so with this a contribution we can finally use any
+linear code without efficient decoding to build such a efficient panoramic Community scheme
+and another two papers worth mentioning are these budokios and during 2021 and
+then this uh our Orion paper by Sheeran and some in 2012. and the main
+contributions of Distributors for this part is to improve the proof size recall
+that the proof size in the version I was describing is square root B and it's actually concretely a very large tens of
+megabytes so in this paper by Buddha now in 2021 they reduce the proof size to poly login
+using a proof composition technique combining the tensor LP with the PCP of
+proximity proposed in this paper and the contribution of the Orion paper
+is actually uh to reduce the proof size with the concrete efficient uh protocol
+so the result is that it can actually improve the proof size to order of a login square with the proof composition
+technique using a code switching technique proposed in this paper and concrete speaking it reduces the proof
+size for the degree D equals to 2 to 25 from this about 50 megabytes to 5.7
+megabytes so this is about an older magnetic Improvement but still it's actually quite large in practice because
+of the distance of the code and also the design of this entire uh binomial coming Minsky
+so because of that this really gives you a trade-off between efficients poor time
+and the large proof size and you should choose a proper schemes for your
+application so that's the entire segment for the
+dynamic Amendment based on the linear code so in the next segment I'm going to
+present a a Concrete Construction of a linear time encodable code which leads to a
+linear time were polynomial movements and zero not group schemes
+welcome back to the last segment of the lecture so in this part I'm going to talk about linear climbing cuddle code
+with a constant relative distance using expander graphs
+and this code has been used in this interesting line for work to construct
+Snorks with a linear puller time here I'm talking about the linear number of field additions and modifications so
+they can be really efficient in practice and as I mentioned earlier in this
+lecture this line of work was initiated by a puto chiruli Gaddafi gross
+ajabadian and Jacobson in 2017 and there they proposed this ideal linear commitment model with a squarely proof
+size and this is basically the proximity it has explained in the earlier part of the lecture
+and later the scheme was further improved by budo chaos and gross in 2020
+to construct IOP that supports tensor queries and this scheme they can
+actually achieve a proof size of order D to the power of Epsilon for any small constant of the issue
+and after that in this paper by budokias and Liu they further improve the proof
+science to be poly log D using proof composition between tensor LP and the PCB of proximity
+after that in this breakdown paper by globner Lee seti thaler and awabi they
+actually use this technique of tensor IOP to build an efficient polynomial commitment where the proof size of all
+the refers D to the power of issue and also as mentioned in this paper they showed how to prove knowledge on this
+without efficient decoding of the linear code and finally in our Orion paper by
+Shea Zhang and some we further proposed a code switching technique to reduce the proof size to order of a log d square
+using a proof composition and a code switching technique that is concretely efficient
+but all of these papers are using this single construction of the linear
+climbing code of code with a constant relative distance so uh in this part I'm going to clearly
+explain to you that the construction and why it can actually achieve a constant relative distance so this code was actually proposed by
+Daniel Spielman in 1996 and later it was generalized from a binary to a finite
+viewed in his favor by Drew Kenisha in 2014. and this code relies on this classical
+object called expandergraphs so in an expanded graph any subset of
+graph or subgraph can actually connect to a money neighbor of nodes in this graph
+and thus is a very good expansion and called expanded graph and here I'm showing you an example of a bipartite
+graph meaning that there is a set of nodes and the right sides of nose and
+there are connections between these two sets but there's no connection within each set and that is called the bipartite graph
+and in this bipartate graph every node on the left has three outgoing address connecting to
+another two nodes on the right hand side so the degree of each node on the left
+is three then this graph actually has a very good expansion because you can check that
+every two nodes on the left hand side connects at least five nodes on the
+right hand side so that is a good expansion and because in total there are
+three edges from each node so from a set of two nodes on the left there are at
+most six outgoing edges so you can connect to most six nodes on the right hand side and now it connects at least
+five so the expansion is pretty good so this gives you an example of the bipartite graph that is a good expander
+and this is exactly the type of expanded graph we are going to use to build this linear time into the code
+so to give you a very kind of rough intuition why we need search and
+expanded graph to achieve a good relative distance um
+very rough is speaking with such an expander we are just going to put a message on the left set of nodes we're
+going to put each symbol of the message into each node on the left hand side and
+then the way to compute this encoding is for every node on the right we are going to sum the values of the nodes from the
+left that's connected to this node for example the compute the first symbol of this encoding we're going to sum up the
+values in the first node on the left and the second note on that because of these two edges and that's it that's a very
+simple algorithm encoded it's just through a summation of the values from the Neighbors on the left
+and uh this is actually a linear code because
+this way of encoding can be represented as a vector matrix product between the message and the adjacency Matrix of this
+bipart graph so that is the generator of this way of encoding so that is why it
+is a linear code and it's also the encoding of this simple version can be done very efficiently in linear time
+simply because we're just going to go through each node and compute the summation on the left hand side because this number of edges from each node is
+constant so the running time of this entire encoding is merely a constant
+times the size of the message so there's a linear inquiry and the intuition y we
+need expanded graph to achieve a constant relative distance is because we call that from the very beginning I said
+that the distance of a linear code is equivalent to the minimum weight of any non-zero codeword
+so it just suffices to count the number of non-zero code words for all the messages
+and the reason why we need a good expansion is because even if the message has a very small number of non-zeros for
+example there's only a single element of the message is non-zero it expands to many nodes on the right hand side in
+this case I need three nodes on the right so one non-zero leads to at least three non-zeros on the right and two
+non-zero leads to five so that is amplifying the number of non-zeros from the message to the code word in order to
+achieve a good distance of the code so that's the intuition why we need an expander
+but unfortunately this simple encoding does not work it's actually far away from from being a good code with
+constant relative distance and it's not hard to see this because again using the example if the message
+contains only your single non-zero value by the requirement of a constant related distance the code word
+has to have a constant portion of the value to be not zero and clearly this is not possible using this simple Equity
+because one non-zero time only connects to three nodes on the right hand side which leads to three non-zeros in the
+code word instead of a constant fraction so this simple way of encoding does not
+work directly so the next I'm just going to show you
+the formal way of encoding a building this linear time color code with the
+constant relative distance using expanded graphs and also we'll show you why this can actually achieve a constant relative
+distance so in order to do that the first thing I'm going to Define is this
+concept last expander it's basically your type of expander that has a very good expansion almost a perfect
+expansion among all expanded graphs so in a loss expander just to Define
+some notations we're going to use the size of L to denote number of nodes on the left side and the size of the uh the
+set on the right is a constant fraction fraction of R4 times L for constant
+Alpha in this example R5 is actually larger than one because the right hand side is larger than the left hand side
+but in the real expander we're going to use in this linear code Alpha is
+actually a value that is between 0 and 1. so the size of the right side is
+actually smaller than the size of the left set and then the degree of the node in the left side is a constant G and Z3
+in this case so then with this definition what is the maximum possible expansion
+for our subsets on the left if you think about it
+if you take any subset of nodes on the left the number of total edges is is exactly
+G times s and every node has G edges and you have s nodes in total
+so that at most you can connect to G times s nodes on the right hand side there's a maximum possible expansion
+so then we are just going to Define this loss expander in this way right so we want this expanded graph to achieve this
+Max Plus amount possible expansion and I'm using this a capital gamma of s to denote neighbors of this subset of nodes
+and the size equals to G to the s so that's the best expansion you can have
+but then it turns out there has to be another condition to make it happen it
+can't be true for all subsets simply because we don't have enough nodes on the reference side but in total we have
+Alpha times L nose on it right and if this G times s is greater than the
+number it can't happen you don't have enough nodes so in order to make it happen we have to
+have a condition on the side of this subset saying that for all subsets
+that is less than or equal to R for times L divided by G we want the expansion to be maximum
+and you can see this is G times s is less than or equal to Alpha L that's exactly describing the condition I would
+say as long as you have enough nodes on the right hand side I want maximum expansion so that is the idea of this
+loss expanding but again this is actually too good to be true so that is the uh actually very
+far to find such graphs so in the real definition of the loss expander we are
+going to relax this uh two definitions two conditions a little bit but still a foreign kind of the idea I was described
+so in the real definition instead of saying that this expansion of this subset s is exactly the same as G times
+s that's the best you can do we're going to say that it's going to be larger than or equal to 1 minus Theta times G of s
+where beta is actually a small constant and when beta approaches to zero that is the maximum expansion you want so beta
+is a parameter of this loss expander it's a relaxation and similarly for this
+condition orange you won't need to hold for any subset s with size less than or
+equal to Alpha times L divided by G again that is too good and we use another parameter Delta small Delta to
+replace Alpha saying that for all subsets of a size that is smaller than
+or equal to this amount we have this almost perfect expansion and again this
+Delta should approach to Alpha and it's again a top constant so that is the real
+definition of a loss expander and for time being all you need to
+remember is that it is a bipartite graph with a very good expansion any small subset explains the large number of
+Neighbors on the right and the importing is we put message on the left hand side and we're going to sum up the
+corresponding nodes with the edges on the right hand side to get the result of the incopy so that's the concept of a
+lost expand with that next I'm going to show you an
+overview of this real encoding algorithm it's actually much more complicated than just applying this loss expander it's
+actually recursive when encoding algorithm so uh how can we encode a message so
+suppose the size of the method is K the goal of this type of encoding is to get
+a code word of size 4 times K so the rate is one force it's a constant rate
+in the first step we are just going to copy the message directly to be the first part of the code word
+and this is parties of size k and this is actually a quite common approach in in our recording code and
+the code with the first part to be exact the same as message is called a systematic code
+then in the second part we are going to apply this Loft expander on this message and we are going to use a loss expander
+with these parameters such as Alpha equals to one half the size of the red side is only half of the size of the
+left set and then we have this good expansion correctly right Rise by a Delta and beta
+and the result of this uh applying last loss expenditure gives you
+um an encoding that is of size K over 2. we are going to compute the right hand
+side of the nose using the summation from Neighbors of the left hand side so that is the a vector of size k word
+then a very kind of very important step of this encoding is that we are going to
+assume that we already have a good encoding algorithm a good linear code
+for message of size K over 2. and it already has a very good constant
+relative a distance and we're going to use it to construct this encoding algorithm for message of
+size k and for time being just assume that we have such a encoding algorithm then
+we're going to apply it to the result of this loss expander and the read is again the same as one-fourth so the result is
+four times K over two and that gives us the code where C1 of size 2 times k
+and they're going to put it as a second part of this inquiry the code word
+and we are not done yet finally we have another step we are going to run this code where C1 through
+another lost expanded graph with r of y equals to one half and with these are
+parameters and good expansions and the result of that is half of the size of C1 because r y equals one-half
+the size of the nose on the right hand side is about half so we end up with another part we denote it as a code word
+C2 of size k and then the final code worked is the contamination of the message C1 and C2
+and the size is K plus 2K plus K in total it is 4 times K and that's how we
+do this encoding algorithm using the loss blender
+and then you may wonder how can we get this encoding algorithm for the message
+of size K or 2 with a good relative distance well using this exactly the same
+encoding algorithm for message of size K or two and that is why it is a recursive encoding algorithm and once you have
+this Vector of K over 2 how do you do this in coding oh you put this keyword to Vector again here with all of these
+parameters divided by by 2. it will cover two copy it and then do another
+loss expander and get a k over 4 and do the recursive encoding step by step so
+that is the recursive part of this encoding algorithm another thing to highlight is that
+although we are using two last expenders with both R5 equals one half there are actually two different expanded graphs
+because the size sizes are different this expanded graph takes an input of size K on the left
+side and generates a vector of size K over 2 on the right side and this last expanded graph takes input a vector of
+size 2K and computes a vector of of size k so because of that in this recursive
+encoding algorithm we are actually using a sequence of Logics when the graphs with similar parameters however always
+equal to one half and we want the expansions of this logical vendors to be pretty good with all these beta and
+Delta and energy parameters so that is the high level overview of this recursive encoding algorithm using
+the last X expander and to put in a little bit a more formal
+way so here is basically a description of this recursive encoding as I described in the in the previous slide
+in the in the in the chart so we have a message of size K and we want to get a codeword size 4K such
+generally this constant one force then we assume that there is encoding algorithm from cable 2 to 2K already
+with a very good relative constant distance a constant relative distance Delta
+and we also suppose that there is a sequence of expanded graphs and we're using two graphs from this sequence
+of size K and 2K on the left hand side with Alpha equals to one half
+then the encoding algorithm can basically describe the app by this four uh four steps we are going to pass this
+m through the last expanded graph to get M1 of size K over 2. then we're going to
+encode this M1 to get C1 of size 2K using this encoding algorithm from kro2
+to 2K where the good relative distance then we are going to pass C1 through another loss expander to get C2 of size
+K and finally we're just going to contend them together to get a code word of size 4K
+and to complete this recursion we are going to repeat it for kr2 K4 or until
+the message becomes a constant size that is talking about this uh this step
+assuming that Alchemy like explaining how can we go from this encoding of a
+cable 2 to 2K we just repeat this in power encoding algorithm for size K over
+two and then K over 4 anterior constant size so finally how can we complete this
+recursive encoding once the size of this message becomes a constant we can actually use any code
+which is good distance for this message for example the reassignment code and
+here because the size of the message is constant no matter what we do it won't affect a sympathetic behavior of this
+code the encoding time remains constant okay so that is the formal description
+of this recursive income so next I'm going to show you why this
+uh way of encoding can achieve a constant relative distance and so the theorem is saying that the
+distance of this code Delta Prime because the minimum of Delta which is actually the
+relative distance of this code we use in the middle from K over 2 to 2K and
+another parameter Delta or 4G that depends on the expander graph and this
+proof is actually a little technical but the first time I've seen this proof from
+the education paper and also this film and code paper it was really impressive
+and I really want to show you the idea of this proof of the constant relative distance
+so yeah let's do that so uh recall that these parameters are related to this elastic expander this
+Delta is the constraint on the size of this uh subset of the nodes on the left hand side and this uh G is the degree of
+this the node on the from the left to the right is a constant G and also we have this build up beta is depends on
+Delta G and it's not used directly in the analysis just to remind you that this uh parameters
+and uh recall that the code word is the concatenation of the message C1 and C2
+where C1 is derived from the expanded graph of M to get M1 and encoded using
+another a good code with a constant relative distance of Delta so
+um here the high level idea of this proof is to actually break it down to
+several cases so again recall that for any linear code
+you know the the distance between any two code word is equivalent to the
+weight of a code word so we are just calculating the minimum weight of any
+non-zero code word to get this uh the minimum distance so that's what we are trying to prove here
+and the first case is actually uh uh the the the extremely simple so we're saying
+that if the weight of the message is large enough then we are done then the weight of this
+uh codeword is is good and then there's nothing to prove here because we are copying this message to the code word
+and then if you're counting the number of non-zeros in this code word we already have more than 4K times Delta
+prime number of non-zeros so the distance or the relative weight of this uh this
+code word is already a 4K Delta Prime divided by 4K so that is larger than Delta Prime already so we're saying that
+and for all messages there's actually large weights then automatically we get uh
+large weight code words so that is very simple then uh the second case is if this
+weight of M is less than or equal to this 4K times Delta Prime what can we do
+so here is where the expanded graph a loss expander kicksy so recall that the definition of the
+loss expander has a condition on the size of the subset nodes on the left hand side and this exactly condition
+where this this is actually satisfied so it is uh so if we can show that if
+the weight of M is less than 40 times Delta Prime right and if we substitute Delta Prime we'll this Delta over 4G you
+can see that it means that the weight the number of non-zeros is less than or
+equal to K times Delta origin that's exactly the condition of this loss expander because of that if you use this
+s to denote the set of non-zero nodes then it has to expand to more than one
+minus beta times G times s nodes on the right hand side that is the definition of the last expander
+and once you have this good expansion on the right hand side then by a simple
+counting argument we can show that at least one node in this neighbor have
+have a unique neighbor in s which means that this result of this
+expander M1 must be non-zero and why is that there's a simple proof by contradiction now suppose that you have
+so all the nodes on in the neighbors have at least two uh Neighbors in this s
+then the total number of edges will be 2 times 1 minus beta times G times s but
+in total you only have G times as many edges because each node in s have uh it
+has this G outgoing edges as a constant so then you just simply don't have enough edges in this graph so because of
+that at least one node in this neighbor have a unique neighbor of Ms and in fact it
+can actually do a much better Bond actually a lot of nodes should have unique Neighbors in s because of this
+good expansion and the sole reason why we are trying to
+make such an argument is that we want to show that this result of this loss expander we call it M1 is non-zero
+that's all we need as long as this M1 is non-zero we are applying this recursive
+encoding of another good code with a constant relative distance of Delta then the weight of the C1 has to be
+larger than or equal to 2K times Delta because of the distance property of this
+uh second code we use it in the recursive encoding right so all these
+proof is that M1 is non-zero as long as m y is non-zero the weight of C1 is actually pretty big
+so that is the key idea of this second step
+uh then actually in order to finish this entire proof we are just following this
+same idea just and then and do it again okay so then we can just condition on whether this weight of C1 is big enough
+or not right so if this weight of C1 is already larger than 4K Delta Prime which
+is exactly the same argument as the first step then we are done and saying that the number of non-zeros in C1 is
+already big enough so the weight of C the columnar C is actually larger than
+Delta Prime and very good and else if the weight of this C1 is
+actually less than or equal to 4K times Delta Prime but still larger than 2K
+Delta then we can apply the argument of velocity sub under again right the size
+of this subset is bounded so because of the condition of this loss expander we
+are going to compute C2 using the second loss expander and we can show that because of the unique neighborhood
+the weight of C2 has to be larger than or equal to 2K times Delta Prime
+because of this Colony argument we simply have that many uh nodes with unique papers and they have to be not
+zero and then summing it up together with this weight of C1 so C1 has to be
+larger than the weight of C1 has to be lower than 2K times Delta we end up with the total weight to be larger than or
+equal to 2K times Delta Prime and that completes the proof for this uh distance
+of this inquiry okay so I mean again I I I I I was
+saying that this is a little bit technical but the highlight idea I want to deliver is that
+we're just proving it Case by case right the first case is the If the message has
+enough weight then we are good if not then the condition of loss expander it
+will be satisfied and then this message will expand to many nodes on the right hand side then by a simple count your
+argument a big portion of results will have unique Neighbors From the message M and
+the unique neighborhood implies non-zero elements because you're you're just summing the
+the value in this non-zero elements with nothing else and the result has to be non-zero and that we are just going to
+apply it again and finally the computer is proof to show that it has a constant relative distance
+and uh so that is the proof why
+it has actually a constant relative distance so with that we can actually
+build this linear time in color code using the expander graphs and that completes the entire description of the
+encoding algorithm and the last piece of the puzzle is how can we find such lost expenditures
+do they exist in practice but turns out these are actually construct the Lost expanders explicitly
+in a deterministic way and this was proposing this paper in 2002.
+but unfortunately the concrete efficiency of this approach is actually not very good in practice because it has
+a large Hidden constant in the construction namely you have to do a find a constant size graph with a very
+good expansion property and the only way to do it is to do a Brute Force search and will lead to very
+a big overhead in practice another approach is to actually sample a
+graph by a public diagram random and as you may know random graphs can have a good expansions
+so if you just do that uh there's some good probability you can actually have these loss expanders but uh but
+unfortunately the probability is only one over a polynomial unit instead of a negligible so we can't
+achieve negligible failure probability to random sound and this is also not
+hard to show because the actually the lower bound of this failure probability has to be a inverse point now simply
+because the size of the graph is a polynomial and and your total sample space the the random space is a
+polynomial and there is at least one graph that is not lost the expander so then the probability of failure has to
+be bigger than one over the positive so this is a very simple argument
+so and then that leads to some improvements of this uh linear timing pullover code based on expanded graphs
+in these two papers uh breakdown and or write so uh in the breakdown paper the
+proposed uh improved version of this uh encoding using random summations instead
+of playing summations so I was describing the way to encode the message is to actually sum The Neighbors on the
+right hand side from the nose on the left hand side so in this paper instead of doing the plain sum we are going to
+assign a random weight for each Edge in the finite field and then doing a weighted sum based on the weights on
+these edges and this actually boosts the competitive distance significantly and
+they can actually show that the distance is actually very good in practice but it's very high probability
+and another uh Improvement in the Orion paper is actually we further proposed a
+testing algorithm to reduce the failure probability of this uh sampling run uh
+elastic expander and this text testing algorithm is actually based on the
+interesting connection between the expansion of a graph and the maximum density of a graph so using this
+algorithm we can attribute a testing algorithm to see whether a random graph is a loss expander or not and the
+failure probability is reduced from inverse phenomena to an negligible and
+you can actually do a rejection sampling to really get a good loss expander with overwhelming probability
+so these are the contributions to the linear climbing code of code from these
+two papers so yeah that's everything about this a
+linear climbing turbo code so finally to put everything together so in this lecture I showed you how to
+build a polynomial commitment using a linear code and combined with the
+polynomial iops for example the Planck IOP and in fact the proofs we discussed in the earlier lectures we end up with
+snarts based on a recurring codes and they have these nice properties so in
+terms of the advantages they only have a transparent setup there's no trap door and try to set up in the uh in these
+schemes and the size of the global parameters is only constant we only need to sample a hash function from a family
+of hashes and the time to commit to the polynomial
+and to generate the proof is actually extremely fast in practice so it only requires a linear number of a few
+additions and modifications in the degree of the panel and the schemes are also plausibly post
+Quantum secure and another important uh feature on a highlight here is that there are field agnostic meaning that
+the schemes don't use fft or bilinear pairings or discrete log so which means
+that they can actually work on any field you want so you can actually pick a native field
+of the combination you want to prove and then run these algorithms or run these uh schemes directly on that field so
+there's another a nice feature about these games and on the drawback Set Side as I
+emphasized several times the proof size tend to be very big in practice so in
+the plain version I described in this lecture the proof size is square root d in the size of the polynomial and
+Congress speaking can be ordered tens of megabytes and even with these improvements using proof composition it
+can be reduced to a poly log b or log b square but still in practice there are
+several megabytes because the distance of code and also the mechanism to construct these economic commitments
+using the code and marble trees so because of this really depends on your
+applications and there's a trade-off between the poor time and assumptions and there's a proof size
+so that's the end of this lecture and in the next lecture we are going to further discuss the fry protocol and the Stark
+Construction thank you for listening
