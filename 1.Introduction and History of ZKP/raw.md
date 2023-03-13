@@ -1,4 +1,3 @@
-
 SHAFI GOLDWASSER: Hi, everyone. I'm giving the first lecture in the course on zero-knowledge proofs. And my lecture will be an introduction
 0:06
 to zero-knowledge interactive proof. And I'm very happy to be co-lecturing with Don
