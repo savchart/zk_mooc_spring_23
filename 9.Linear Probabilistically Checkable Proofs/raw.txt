@@ -1,0 +1,917 @@
+hello everyone welcome back to our mooc on xero knowledge groups I'm yipong and today I'm going to talk about snarks
+based on linear pcps so first I want to remind everyone about
+snarks we've learned so far in this table in lecture 6 I introduced it's a
+classical protocol the kcg Panama commitments based on bilinear Perry
+combine it with the Planck IOP inductor 5 or the interactive proofs in lecture 4
+we end up with snarks with a cluster setup and these constructions tend to have a
+small proof size in practice and in order to remove this process setup I've talked about schemes based on
+the screen logarithm and those include bulletproofs Dory dark and hierarchs and
+we also have a snark implementations based on these panamic events such as a Halo 2.
+during the past two lectures we also introduced a the schemes building starts
+based on error create codes in lecture seven we talk about schemes based on linear timing color code and
+the Merkel hash trees and those include breakdown and array and in last lecture adjusting talked
+about this uh interesting lab research building skin snarks based on
+resolvement code and the fry interact article proof schemes and these games can actually further reduce the proof
+size from a square root to poly logarithm and they include Stark Aurora fractal Virgo and so on
+the goal of this lecture is to talk about another technique to build stocks
+based on the so-called linear PCP and this technique was actually proposed
+before those polynomial commitments and polynomial iops and has been used to construct the earliest implementations
+of snarks so it was to spend this lecture to study the detail of the constructions
+so to uh briefly show you the properties of these constructions
+on the positive side these snarks tend to have very short proof size in practice for example in this
+construction proposed by Ian's cross in 2016 the proof only consists of three group elements
+and in practice is only about 100 to 200 bytes so that's actually the shortest
+proof size among all the Snorks we are learning this course and for a similar reason these snarks
+also have very fast verifier time again in this construction of gross 16 the verifier only needs to check one
+parent equation using three bilinear pairings and in practice it only take takes what less than one millisecond to
+do it and in terms of these advantages the
+poorer time of these snarks tend to be relatively slow in practice because they require both fft and group explanations
+the size of these computations are linear in the size of the circuit to approve
+and because of that they're really slower compared to schemes based on for
+example error current codes another major drawback of these constructions is that they require a
+circuit specific trusted setup so there has to be a preprocessor to
+perform a trusses setup with the trapdoor and delete this trapdoor completely after the setup phase
+and these schemes have to do this trusted setup for every combination you
+want to prove and this may not be desirable for some applications in practice and
+because of that this is uh sometimes called pre-processing scenarios in the literature and this is different from
+the stocks we've seen seen so far for example the plank uh system that requires a one-time Universal trusted
+setup and also other schemes without trying to setup at all
+so before going into the detail constructions of these snarks based on linear PCP I want to briefly introduce
+the history of this line of research so in the early days the original construction was proposed in these two
+seminal papers by Killian and mikali and in these two papers they combine the
+classical protocol of the probabilistically checkable proofs PCP with Marco trees and the constructions
+of snarks are actually asymptotically optimal up to poly logarithm factors they do not require any trusted setup
+and they have a succinct Bruce and verifier time so in theory there are actually very good
+and also in this paper by Michael in 2000s he actually applied the fear Shamir transformation to remove the
+interactions in this construction and get a non-interact argument of knowledge
+but unfortunately they don't need to efficient stock systems in practice in
+partly because of the heavy mechanism of the PCB and to the best of my knowledge
+I'm not aware of any concrete efficient systems implemented based on it's a PCB plus Merkle tree
+so motivated by this problem there is this line of research
+constructing snarks without the classical PCP
+algorithm and this line of research was started by ishai kushlov C ostrovsky in 2007 and in this
+paper they proposed this concept of a linear PCP and the view the scheme combined this one with a homographic
+encryption to get a snark with short proofs but unfortunately the poorer time is
+quadratic in the size of the computation but later
+against gross proposed the construction of snarks based on bilinear pairing in
+this paper in 2010. although it's not directly built on top of the construction of the linear PCP it
+can still be classified as a linear PCP in this model and in this construction it applies the
+bilinear pairing which is kind of the ancestor of the snarks where I'm going to talk about today but unfortunately
+the size of the global parameters and the plural time are still quadratic in this constructing gross 10.
+later the scheme was fully improved by how your litma in 2012 where the
+technique called progression free sets with this technique he improved the size of the global
+parameters from quadratic to Quality but still the scheme has a correct Brewer
+time and does not have a efficient implication in practice and finally a big breakthrough in this
+line of research was actually proposed in this paper by Gennaro Gentry parno
+and ricoa and there they proposed this uh very beautiful construction of a
+quadratic span programs and quadratic arithmetic programs that reduces the poor time and the size of the Google
+parameters from quadratic to quasi-linear and linear in practice and that leads to efficient instantiations
+and many systems in practice and this is the one we're going to talk about today the qat
+and after that this line of research has led to many new techniques and efficient
+constructions of snarks and they were usually before the you
+mentioned at least the polynomial iops and Panama commitments we've talked about before and here I'm just listing a
+very small subset of papers and there are many more papers there's both theoretic contributions and
+concrete efficient systems for different applications and there's a very long literature
+building a snot based on linear PCP even qaps and in this short list there are
+several papers I won't highlight for example there's one By parno Gentry Harwell and libert they propose this
+system called pinocular that is uh one of the earliest efficient constructions of snogs and is the one that I'm going
+to talk about today and here we have uh starts for run-based computations such
+as the stocks for C and Tiny Iran and we also have the recursive stocks of
+Cycles in big Curves in this paper by bensa song at all and they also have
+this famous construction for cross 16 with the smallest proof size of only
+three elements and that it has been uh widely used in practice for different
+applications and another line research let's build this uh slots based on the original
+linear PCB construction and in these two papers by setting a lot they have the
+stock systems called ginger and pepper and that was also uh one of the earliest
+systems of stocks and also in this paper
+uh by uh bitansky kyasa ishai of Trotsky in the penis they
+are actually unifies this line of research and they're the framework of a linear interactive proof
+and instantiate and these qaps and linear pcp's architecture instantiations in
+this framework so that's a brief introduction of this history of this line of research on
+linear pcps and queryps
+so in order to understand the construction of this snark space on linear pcps I'm going to follow this
+common paradigm for building efficient snarks again so recall that in order to view the
+stands for General circuits we already have a information theoretic you secure component
+and and this time it's going to be this linear PCB or quadratic arithmetic program
+and then we are going to compile this uh informative direct secure a component to
+a concrete efficient snarks with short proofs using a property cryptographic
+tool and this time we're going to use the binary pairing to do it and this is actually different from the
+polynomial iops and polynomial commitments we've learned before
+so then we will have a three segments of this lecture in the first part I'm going
+to talk about this uh classic construction of a qap quadratic arithmetic program in the second part
+I'm going to show you how to construct an efficient snark with a constant size from the qap using by linear Parry
+and in the last part I'm going to talk about variants of these snarks
+in this framework of linear PCB those include the support of rncs run one
+constraint system and also the variance of across 16 with three group elements in the proof and also how to achieve
+zero knowledge uh in these constructions so let's start with the qap
+so recall that our job is to view the snark for proving circuit satisfiability which
+means that given an arithmetic circuit C defined over a final field with addition Gates and multiplication Gates and an
+output y the plural p is trying to claim that he knows a witness W such that c of X comma
+W equals to Y where X is the public input known by the verifier and for Simplicity Let's ignore this
+public input for time being and assume that all it inputs are secret held by the so the prover is trying to convince
+the verifier that he knows the a satisfying assignment the input and
+values of the circuit such that c of w equals to y so that is the
+setting Where and the problem we are trying to solve so next I want to reintroduce this
+concept of a transcript or the trace of a computation or a circuit
+so here I'm showing you example of an arithmetic circuit where this addition gains and multiplication Gates and this
+set of values so the trees just means that the poor is going to evaluate this entire circuit
+and takes the values on all the wires and for example this is exactly the
+transcript defined in lecture four for interactive proofs
+that is the value of aggregate including the inputs and then for interactive
+proofs uh Justin talk about how to construct the sum check and a multivariable phenomena is representing
+the addition Gates and modification Gates and also the transcripts of this computation and how to use the some
+check protocol to check the correctness of this evaluation
+similarly in lecture 5 when done was introducing this Planck IOP
+he also defined a trace of this computation but this actually slightly different from the interactive proofs
+instead of just taking the value of every gate it actually it is actually defined as the left input right input
+and output of aggregate so there are some actually some redundancies of
+this definition of the trace because one wire can both be the output of one
+gate and also the input of another gate so it's actually slightly larger than the size of the value of every gate but
+still it is derived from the evaluations of the circuit so that's why we still
+call it the transcript or trace of the computation so following uh the the same ideas
+we're going to define the transcript of qap for this lecture again it will be slightly different from both interactive
+proofs and clock so this time we're going to define a trace as the input first output of every
+multiplication gate and burgundy ignored output of addition Gates this time
+so to show you on this slide right so we're going to remove the
+labels for the output of these two addition grades and only count the output of every modification Gates here
+together with the input so that is the trace that we're going to talk about we are going to be using this lecture so
+again it can actually be derived from the circuit evaluation so essentially there's no big difference but in terms
+of the formal definition it's slightly different from the interactive groups and the Planck IOP
+so once we do that we can actually represent this transcript or Trace as a
+vector so we can just do this in any predefined
+order for example just for following the topological order of the circuit valeration we have the six inputs three
+two one seven five four and then the internal wire is six and then the
+outputs of the modification gate is 48 and 782. and also for Simplicity I'm
+assuming that uh decades before each output must be a
+multiplication gate so that is the transcript of this
+combination for qvp and then another thing uh to introduce
+is that very naturally we also going to label these gates in the circuit again
+we only care about the modification gates for qap and we are just going to label them one by one for example we
+have gate one the modification get here okay two and K3 so we have three modification Gates and
+the trace of this Vector with nine values in the circuit with six inputs
+and the three outputs of the multiplication Gates
+with that the next concept I want to introduce is this selector polynomials
+so that is the key component to reduce the problem of a circuit sets viability
+to a polynomial equation which is essentially the quadratic arithmetic
+program so let's uh basically spend most of the time of this segment to understand what
+is the definition of this selector partner so I'm going to first Define a set of
+polynomials called LAX and how can we Define this we are basically
+asking this question is each CI in this trace of the
+communication the left input of gate J for every J equals to 1 2 and 3 for all
+the gates if the answer is yes we are going to put one there and if this answer is no we
+are going to put 0. okay and here for your convenience I'm basically labeling these values in the
+in the computation trade no trace of this circuit as C1 C2 all the way to C9
+so then let's take a look at an example of l1x what is l1x
+so then we are asking the question is C1 this value is three the left input of
+gate 1. so the answer is yes this 3 is left input of git the gate one the
+multiplication gate so we put one here and is C1 the left input of A2 the
+answer is no so we put 0 here and then finally is C1 the left input of
+K3 the answer is again no so we put zero so we have a vector 1 0 0.
+of size 3 the same as the side of the number of our multiplication Gates so the then the way to define this l1x
+is through polynomial interpolation at a known set Capital Omega
+so with this set we want this polynomial at 1X that to evaluate to one
+at for example Omega and evaluates to zero at Omega
+square and evaluates to zero again at Omega to the cube so in this way for any predefined
+distinct set of values we have a unique interpolation of the polynomial and we
+can actually compute a polynomial l1x base degree three assuming that is a
+monitronomy meaning that the leading coefficient is y so there is a unique degree three harmonic polynomial with
+these three evaluations and up to this point Airlines should be
+familiar with the definition of roots event this is uh for the convenience of
+polynomial computations using the fft algorithm but so so that is why we set
+this uh set to be the powers generated by the root of 20 but for the algorithm
+to work you can actually for the product will work you can actually use any set with distinct values okay so that is how
+we Define this polynomial l1x using the polynomial interpolation
+the similarly let's take a look at l2x is C2 the left input of each gate
+then this C2 is the right wire here it is not the left input of gate one is the
+right input so we put zero here and again it's not the right input is K2 and start right input of K3 so we have a
+vector of zero zero zero and we are going to interpolate this polynomial using the fact that the evaluations are
+all zeros at these three points and note that this l2x is not a 0.9 you
+can actually interpolate the polynomial with these three values as the roots it is actually a unique degree three
+Monique polynomial so similarly we can do it for every CI
+and get the Stacked polynomial of l i x for oi but another interesting case I want to
+highlight here is for l3x so we are asking is C3
+the left input of data I okay J so it is it is this wire apparently it
+is not the left input of Gate 1 is not left input of K through a two so we put 0 and 0 there
+but the rule to define whether it's left input or not
+when we have addition kit is that the values to go through this addition
+Gates and connects the modification Gates so in this case because it both 1 and 7 are
+actually imposed to this addition gate and the output of this addition gate is the left input of gate 3. so because of
+that we count them as the left input of Gate 3 and because of
+that we are going to put one here denoting that C3 is the left input of gate 3.
+so that's how we take care of bars related to addition bits and you're going to understand why
+we do we're doing this in the very next slide so then we are going to interpolate the
+polynomial using the evaluations of a zero zero and one so that's how we get
+l3x and we'll just keep doing that one by
+one and here the table summarizing the evaluations of all these LX from l1x all the way to L 9x and
+evaluation should be these vectors at these three points and we can interpolate these phenomenals and get
+the unique polynomials of a degree three assuming the leading coefficient is one that's how we Define
+the l i x then you may wonder what's the
+properties of these polynomics why they are called selector polynomials and here's the reason
+so again I'm listing this table with the evaluations and vector and I'm going to define a capital l x binomial as the
+summation of CI times l i x for area
+by multiplying each value in this trace the vector with the corresponding LAX
+and sum them up so once we have this capital l x
+what is the property of this polynomial or let's evaluate it at different powers
+of the root of unity the word is l evaluated at Point Omega
+well then by the definition of this l i x right we need to evaluate them at Point Omega
+and basically we are looking at the first column in this table
+because by definition they're specifying the evaluation of L1 X l2x l3x and all
+the way to L 9x at the point of Omega and as you can see from the table
+there's only one non-zero value in this column and that is L1 Omega
+because of this property there will only be one non-zero term in
+this entire summation that is C1 times L1 Omega that equals to C1 itself which
+equals to three all other values are will become zero
+because of the evaluations of these Lix at Omega so in this way we are selecting C1 out
+of this big summation when evaluating L of X at Omega
+and then what is C1 it's essentially the left input of this multiplication gate
+1. so because of that the property of this capital l x is selecting the left input
+of Gate 1 when evaluated at Omega
+so similarly let's take a look at what is L evaluate at Omega Square
+then by the definition of these LAX we're essentially looking at the second column of this table
+and again there's only one non-zero term in this entire column and that is L7
+Omega Square because of that in this big summation there will be only one non-zero term
+again and that is C7 right so we are Computing C7 times L7 Omega square that
+is C7 itself equals to six and what is this six that is basically
+the left input or the second multiplication gate here right
+so we are selecting the left input of the second gate out of all these values
+from the trace and finally what is L evalued at Omega
+to the cube then we are looking at the third column in this table and note here that there
+are actually two non-zeros in the third column they're corresponding to L3 X and
+l4x because of that we are selecting C3 and C4 and add them up together because
+of the summation in this equation so L of X evaluates to C3 plus C4 at Point Omega
+to the cube and if you take a look at this circuit that's exactly the left input of gate 3.
+that is C3 plus C4 that equals to 8 which is the left input of P3 and that
+is why we don't count the upward operation Gates in the transcript.tracer communication
+because they will be taken care of implicitly by this definition of the capital LX polynomial using this big
+summation since we are summing them up in this big summation automatic
+so with all of these kind of a evaluations the role of this Capital LX is
+essentially selecting the left input of every multiplication gate by evaluating at different powers of the rules of
+unity so that is why it is called the selector part 9.
+so with that then very naturally we will have two more selected polynomials for
+the right input and output of aggregate so once we have l x the next one we have
+will be RX and we are asking the question is HCI the right input of gate
+J for RJ and then again to give an example what is r1x
+we are asking whether C1 is the right input of each multiplication gate and
+clearly this is not the right input of Gate 1 not the right input of K2 and not right input or B3 so we put 0 and 0 and
+0 there and again we interpolate this polynomial at the same known set
+generated by the root of unity then we have a unique Monique polynomial with
+degree three for r1x similarly we're going to do it for r2x
+r3x all the way to R9 X and we have this another table for the selector
+polynomial RX that corresponds to the right input of
+every gate after that we can define a capital RX in
+a similar way as the capital l x and we are summing up CI times RX for I equals to 1 all the
+way to 9. and once we do that we can actually evaluate this Capital RX at different
+powers of the root of unity and what is r of Omega
+again we are looking at the First Column of this table and there's only one non-zero in this column that is r2x
+simply because C2 is the right input of this gate one and because of that in
+this entire summation there's only one non-zero term that is C2 so we are selecting C2 out of this Trace
+of the computation and similarly if you evaluate r at Omega
+square that is a C3 plus C4 because there are two non-zeros in the second
+column of this table and they correspond to the right input of this gate 2. again
+they go through this addition Gates and both of them are right input of this modification gate 2.
+and finally we have uh sorry there's a typo here should be R of Omega to the cube that equals to C5 plus C6
+and that is because we have a R5 X and r6x to be non-zero at this point and
+that corresponds to the right input of gate 3. so we are essentially selecting the right inputs of every multiplication
+gate using this Capital RX 0.9 finally we have the selected polynomial
+oax for the output of each gate right and again using example what is o1x we
+are asking is C1 the output of Gate 1 gate 2 or gate 3. the answer is no for
+all of them so we have a vector 0 0 and 0 and 0. and we're going to interpolate
+this phenomen and get a unique polynomial of degree three and finally we just have this entire
+table that corresponds to the output of every gate defining the polynomials oix
+and we have the definition of this capital O of x as the summation of CI times oax using
+this table and for a similar reason when you evaluate this Ox at different powers
+of rules of ENT is essentially selecting the output of each multiplication gate
+and so all of Omega equals to C7 because there's non-zero and that is the output
+of this gate Y and O of Omega square is the output of A2 of Omega Q is the
+output of the gate 3. so that completes the definition of
+these three sets of selector polynomials
+so um once you understand the definition of these Vector polynomials we are almost
+there to understand this entire construction of the qap and the last piece of the puzzle is this master Point
+argument P of x so I'm going to define a polynomial P of X as
+the product of LX times R of x minus o of x
+and if you can if you expand the definitions of these polynomials we have
+a equation consisting of three big parenthesis in the first parenthesis this is a summation of CI times l i x
+times the summation of CI times RX minus the summation of CI times oi of X that
+is the definition of the so-called Master polynomial P of x
+once we have that the claim is that the P of X should divide it with zero at all
+powers of this root of unity defined by this public predefined set
+and why is that let's take a look at the definition of these uh polynomials using
+this example right so we've actually went through all of these evaluations of our LX RX and no X so what is p of Omega
+or that equals to L of Omega times R of Omega minus all of Omega okay so then
+what is L of Omega from previous slides we know that the space is selecting the left input of
+gate 1. and that should equal to C1 because of the definition and similarly R of Omega is selecting
+the right input of Gate 1 m equals to C2 and all of Omega is selecting the output
+of git one with it which is C sub so then P of Omega simply equals to C1
+times C2 taught minus C7 that equals to 3 times 2 minus six
+and it should be zero in this example that is exactly taking the left input of
+multiplication gate times the right input of multiplication gate minus the output of a multiplication gate and if
+this Trace is cracking period by evaluating the circuit then it must be zero because left times right minus the
+output should equal to zero for the first multiplication kit
+therefore a similar reason let's take a look at P of X evaluated at Omega Square
+Again by the properties of these selector polynomials we're essentially selecting the left input right input and
+output of gate 2. so the equation becomes C7 times C2 plus
+C4 we are taking account of addition automatically in the definition minus C8
+and if you do the calculation clearly this is a zero again so P of x equals
+zero at Omega Square and finally P of Omega Cube should also
+equal to zero because we are taking the left input of P3 times right input of K3
+minus the output of D3 and that should decode with zero
+so because of that we can see that as long as this CI is the correct
+evaluation of the circuit is the correct trace of this computation then P of X should be zero
+for Omega to the power of J for all J equals to 1 2 and 3 in this example
+so finally how can we actually show that a polynomial P of x equals zero at a given
+locations what is an equivalent condition so again this is not saying that P of x
+equal to is a zero polynomial right because the degree of P of X is actually twice of the degree of LX and in this
+case the degree is six so this is clearly not a 0.9 so this condition is equivalent
+of saying to saying that P of X can be written as a product of two polynomials
+BX times the quotient polynomial Q of X where VX is the vanishing polynomial
+defined as x minus Omega times x minus Omega Square Times x minus Omega to the
+cube and this polynomial divided to zero at all these three points in this set
+because there's the roots of these three points so that is why it's called the vanishing
+polynomial because it vanishes to zero at all elements in this set
+so basically you're just taking the product of x minus each element in the set and multiply them together that is
+the vanishing pointing Army of a given set and this polynomial is the polynomial of
+minimum degree that's equals to zero at this given point
+and also it should be a non-zero Point num so then any polynomial that equals to
+zero at these points can always be written as the product of this Vanishing polynomial times the quotient polynomial
+with the corresponding degree so that is why if we can write P of X as
+V of x times n equals in polynomial Q of X it is equivalent to say that this P of
+x equal to 0 at these given points so that is the property using the
+management technology so that completes the entire story of this qap so that is the design of this
+quoradic arithmetic program so to sum it up essentially we're trying to reduce the
+problem of the circuit satisfiability to an equal a problem that can be represented as a polynomial equation
+and so that later we can use cryptographic tools to compile it to an efficient smart game in practice
+in Pretty in particular in this case p is trying to claim that he knows the
+witness such that c of x w equals to Y and through this entire definition of
+selector polynomials the master polynomials and budgeting polynomials it is equal to say that the poorer P
+claimed to know a vector C which is the trace of this computation such that this
+monster polynomial P of X can be written as V of x times Q of x
+and they are equivalent conditions as long as we can do this it means that this Vector C is the correct Trace
+evaluating evaluated using the circuit
+so to make things a bit more generous General so we have two parameters that are
+related to the size of the circuit so first we have this parameter M that
+denotes the size of this Vector the trace that's essentially the number of inputs plus the number of outputs of the
+multiplication gates in the circuit and in the miniature is also called extended Witness
+because the winners of the approval should technically be the secret input of the circuit and the previous
+evaluating this entire circuit to get this trace of the combination and that is why it's called extended business
+another parameter we have is the small n that is number of multiplication Gates and is also the degree of each selector
+Panama because they are defined by the polynomial interpolation at the locations
+the size of which is the same as the number of multiplication Gates so we have two parameters M and N but
+they're not exactly the same but they're on the same order so m is the number of inputs plus the number of multiplication
+Gates and N is the number of multiplication Gates so they're off by the number of inputs in this example
+so then again to visualize it using this big table of selected polynomials
+defined in the qap so we have this selector polynomials Lix RX and oix
+the number of rows in this table is m this the size of this extended witness
+for every value CI we have a corresponding l i x r and x and oax
+and the degree of each polynomial is the small n the number of multiplication gates in
+the circuit because we are defining the evaluations that this set of elements generated by different powers
+of the rules of unity so the total size of this table is rough
+is being on the order of n times n is quadratic in the size of the circuit
+but as you can see here the table is quite sparse right we are asking
+questions whether each value is the left input of a gate or not and if you think about it carefully the
+total number of non-zeros here is linear in the number of multiplication gates in the circuit a linear in the size of this
+circuit and you you can't have a circuit with all ones in the table so because of that there exists a sparse
+representation of this entirety table and another important property to
+highlight here is that this table is a public information it does not depend on any values or this
+business in the circuit known by the pool there are mere they're solely defined by
+the structure of the circuit whether each buyer connects to a certain gate or not so because of that this table can be
+generated in a pre-processing phase which is actually important in the construction of the real stock Okay so
+that's why uh in this equation defining the mouse Master polynomial I'm using
+this blue color to represent those polynomials which are known both by the plural and the verifier so there are
+public information and can be pre-computed with the sparse representation
+and the secret value only known by the poor is these Ci's
+so they were actually derived from the witness the secret input of the circuit and the poor evaluates this entire
+circuit and they get this extended business of CIS and this this qap the program is trying
+to convince the verifier that the CI is set by this set of equations right this
+P of X can be written as the value of polynomial V of x times the Q of X where
+the valency of polynomial is again a public information and this quotient polynomial is a secret information known
+only by the so in this way we complete the description of this
+entire qvp so essentially we are reducing the problem of a circuit satisfiability to a quadratic arithmetic program
+showing that the polynomial P of X has this property that can be decomposed as
+V of x times Q of x and their equivalent with each other as long as there exists such a CI passing
+this check then it means that the certain the approver knows the the
+assignment of the circuit that can be satisfied and give you this corresponding output
+so that is quadratic arithmetic program
+welcome back in the second segment of lecture I'm going to show you how to compile a
+quadratic arithmetic program to a snark with a constant proof size using
+cryptographic tools so before showing you the detailed
+construction of the snark I want to explain a little bit more about the model of a linear PCP
+so first they have this classical model of a probabilistically checkable proofs
+in which the poorer can actually generate this PCB Oracle and you can think of it as a big message of a
+polynomial size and instead of sending it directly to the verifier the verifier
+can actually make several Point queries asking what is the elements of this big vector and with
+this point here is the verifier is able to verify the correctness of the computation or the program now the
+satisfying assignment of the circuit efficiently and this is was a big breakthrough in
+the complexity Theory and then the early start constructions of achillian McCully were based on this uh PCP model
+essentially they're compiling the probabilistically checkable proofs into a real start using Merkle trees on top
+of this PCP article so instead of sending this PCP article directly to verifier the prover can commit to this
+PCP article using the Merkel tree and sends only the root of the Merkel treat oblivar a later to answer these Point
+queries the poorer additionally attaches the Merkel battery proof to the verifier with logarithm
+exercise in the size of the PCP article so in this way they were able to build a sympathic good snarks
+for a large class of computations so then uh
+in analogy to this classical PCB model there are several generalizations of the
+model that we've learned in previous lectures so the first one is the interactive PCP proposed by kirlai and
+Raz in 2008 and also the interact Oracle proofs proposed by Ben sassan kyosa and sooner in
+2016. so in this model instead of sending a single Oracle the program can
+actually interact with the verifier and sends multiple articles during these interactions and know that it's only
+interesting built-in fractions otherwise the program can just send all of these oracles together as in the original PCP
+and after that the verifier can make Point queries from all of these oracles and then check
+the correctness of the computation and this IOP is actually a model used in the fry protocol
+explained in the previous lecture and again we can compile an ipcp or IOP
+to a real smart system using Merkle trees and this Marco trades again the cryptographic Primitive we use so we're
+going to view the Merkel shape for on top of each article and then sends the microchip rules for these Point queries
+and again this generalization improves the efficiency of these Oracles in the
+program significantly in practice another generalization we've learned
+before is this polynomial IOP for example it was used in the Planck system and the polynomial keywords formalized
+by Boone's fish and the spinach in 2020 in the dark paper so in this model
+instead of sending a string as in the Orlando PCP the Oracle is a polynomial
+generated by the proof and the verifier can make evaluation queries on chosen
+points of the polynomial and Oracle replies with f of R to the verifier for the verifier to verify the correctness
+of the communication and then in order to compile it to a real snark we have these polynomial
+commitments as we literally in the previous two three lectures and so instead of sending the polynomial to the
+verifier or posted on the Fly the Brewer commits to the polynomial and open it at
+these points using the planarian commitments so again we have the components of polynomial IOP and then
+the a phenomic Amendment of the cryptographic permitted
+so then analogy through all of these models here's the model of a linear PCB
+so again it's a generalization of the classical PCP model and was proposed by
+Shai kushlovesi and orthrosky in 2007. paper so in this linear PCB model the
+Oracle generated by the poorer is a linear function so you can think of it
+as an oracle defined by for example Vector C and again instead of sending it direct
+to the verifier the verifier can make queries to this Arc and now the queries are actually linear
+functions so the verifier can submit a again a vector let's say a q1 of the
+same size as C for example and the Oracle will compute the inner product between this C and the verifiers
+curricue and return a single value to the verifier so this defines a linear function for the Oracle and the query so
+that is why it's called linear PCP so the poor is only allowed to post these
+linear articles and verifier is only allows to make linear queries from this uh oracles so that is the linear PCP
+model so then uh the quadratic arithmetic
+program I explained in the first part of the lecture can actually be categorized
+as a linear PCP in exactly this model and here's the reason why so record it
+in the quadratic arithmetic program we are trying to uh the Brewers trying to convince the
+verifier that this master polynomial computed using the extended business CI
+and the public selector polynomials LAX RX and NOAA X can be written as the
+product between management polynomial again this is public and the secret quotient polynomial true effects and
+then we show that it is equivalent to a circuit satisfiability so then in order to show this we can
+actually apply the linear PCP model and this linear PCB Oracle is simply the extended business C and also the
+coefficients of this Q of x then with this Oracle one way to check
+this equation is again evaluating it at a random point
+right so the verifier can compute this evaluation of this this uh a polynomial
+equation at the random Point gamma and to do that the verifier can only submit linear queries to this Oracle and
+the first cure is the inner product between C and uh the evaluation support
+Li at the random point a gamma and here I'm abusing the notation informally to
+use this both letter to denote the vector for all I like L1 gamma L2 gamma
+and so forth so then the value in the first parenthesis is simply the inner product we can see and ioi Gamma and
+similarly the second component is again in a product between C and the second query from the verifier and then we have
+C the inner part you can see in the third query from the verifier and then finally V of gamma can be valued locally
+by the verifier and Q Q of x the evaluation of Q f of x can be viewed
+as a inner part between the coefficients of Q and this Vector generated by the random Point column so in this way the
+verifier can actually check this equation using four linear currents to this linear PCB Oracle and if this
+equation is true then by the schwa zero Lemma we know that with high probability this
+polynomial equation on the master polynomial is also true so this gives you one way to check the validity of
+this master polynomial of quadratic arithmetic program in the linear PCP model so that is why uh qap is actually
+a instantiation of a linear PCP but know that here in the real problem
+that I'm going to present next we are not using this random queries and not using throughout the program we are
+using another cryptographic tool to do it as I'm going to show you right now
+so that is the model of a linear PCP so what I'm going to do next is again in
+analogy to the classical PCP polynomial IOP and the the iop-9 PCP right so right
+now we have the correct arithmetic program that is the information is direct component
+in the linear PCP model and that's I'm going to show you how to compile it to a
+real snark with a constant size proof using the cryptographic tools
+so the cryptographic Primitive we are going to use is actually our old friend by linear Peri
+and recall that in lecture six I explained this the definition of bilinear pairing and used it to
+construct the kvg panamic equipment and here we're going to use it again to construct this uh snarks based on linear
+PCB and quadratic arithmetic program so uh in bilinear pairing we have these
+parameters of a bilinear group where this G is the base group and the DT is
+the target group and both of them are of other p and small G is the generator of
+the base group and there is a key operation called bilinear pairing it takes
+two group elements in the base group as input and computes one element in the
+Target group and the rule of this computation is basically compute Computing the multiplication in the
+exponent and then bringing it to the Target group and as an example
+the power of this bilinear pairing is actually to verify the correctness of the product in the exponent so given G
+to the X and G to y a pairing can check that if some element H is g to the X Y or not without knowing X and Y
+so that is the two of bilinear pairing we are going to use
+so now let's see how can we use this cryptographic primitive to compile the qap into a real snog with constant size
+proof again here I'm showing you the master binomial we're trying to check and again to emphasize these Ci's or
+secret values extend the business known only by the plural and these LAX RX and
+Nola X these are public selected polynomics defined by the circuit and they're known by both the program and
+the verifier and they can be computed in a pre-processing phase because they only depend on the circuit but not on any
+secret value and similarly we have the public Vanishing polynomial B of X and
+this quotient polynomial is computed for example through the polynomial Division and it's only known by the proof
+so then instead of sending these Ci's in Q of X
+directly to the verifier as in the linear PCB model here's what we are going to do there is a setup phase of
+this snark based on linear based on a correct aromatic program so in the setup phase first we are going
+to generate the parameters of a bilinear group and then computes this set of
+public keys and in this case where economy there's a proving key that will be used by the approval so this proven
+key is basically evaluating each selector polynomial at a secret
+evaluation point out chosen by this pre-processor so we're going to compute G to the l i Tau G to
+the ri Tau and G to the o i Tau for all I from 1 to n
+and now that these are the selector polynomials l i x RX and Ox evaluated at location Tau and raised to the exponent
+of G then the second half of the approving key we're going to evaluate G to the Tau
+G to the Tau square and so forth all the way to G to the Tau to that and note that this is exactly the same Global
+parameters as in the kcg polynomial commitments and also as in the Planck or modeling snark systems
+and this is the the same kind of trusted setup process as these stocks but in
+addition in order for the startups based on qap or Linux we could work we also need these additional terms in the
+proven key as shown on the slide and these proving Keys depend on the circuit they
+are defined by the selector polynomial which are again defined by the connections of the circuit and that is
+why this pre-processing phase is circuit dependent for every computation you're trying to
+prove you have to generate a different set of three keys and then we have a verification key
+which is g to the power of V evaluated at top where V is dimension polynomial and that's that is known by the verifier
+after this the most important step is we have to believe this Tower completely and that is why this is called the
+trussy setup and it's a circuit dependent so that is the key generation algorithm
+of the stock so next let's see why we are generating this set of public Keys how can we use
+them to compress the Proverbs of messages of these extendedness and the
+quotient polynomials so the way to do it or the the key idea
+is to actually compute each term of this Master polynomial in the parenthesis
+using the evaluation as the secret location Tau and raised to the exponent of G so in the first element in the
+proof we are again going to compute Pi 1 which equals to G to the power of summation CI times IO icon
+and if you take a look at this the term in exponent of G is exactly the first
+polynomial in the first parenthesis evaluated at the location secret Point
+top and so that is pi one and again following the same derivation as shown
+in the kg polynomial commitment this Pi 1 can be evaluated by the plural without
+knowing the secret key term and it can be computed using the public parameters
+G to the power of IO icon so essentially you're raising each term of G to the Ally Tau to the corresponding
+coefficient CI in the extended business and then multiply them together you can get a single element Pi one
+then similarly the Proverbs we compute Pi 2 using the polynomial in the second parenthesis so that the G to the power
+of summation CI times r i time and this can be evaluated using the second set of public key
+and then we have Pi 3 that equals to G to the power of summation CI times o i Tau and finally we have Pi 4 which is
+equal to G to the power over Q Tau where Q is the quotient 0.9
+and this can be evalued using the last set of public parameters in a similar
+way as the kg polynomial commitment just raise each key to the corresponding coefficients of
+this polynomial Q of x so in this way the program generates four group elements as the proof to the
+verifier and that's the proof algorithm in this snock
+so finally how can the verifier verify the correctness of this computation
+so again the idea is to actually check the correctness of this equation
+the mass of polynomial equals to V of x times Q of X in the exponent
+and so we already have all of these terms in these four proofs and we may need to
+check the the relationship the product relationship as shown in this equation
+and in order to do that we need a bilinear pyrene operation and here's the equation to check it the
+verifier is going to compute the pairing between pi 1 and pi 2. and here if you
+if the poorer is honest then the pi 1 and Pi 2 will be computed as shown on
+the slide then the parent between them will give you the product between
+this value and this value which is exactly the same as the product of the first phenomena the first
+parenthesis and the second polynomial in the second parenthesis as in this polynomial equation evaluate at the
+point top and then the verifier is going to divide it by the pairing of Pi 3 and the g
+itself so that gives you subtraction in exponents by the summation of CI times o I taught and
+that is the third term in this equation finally on the right hand side
+the verifier is trying to compute V of x times Q of X evaluated at this point Tau
+so how can we do that again by linear pairing and the verifier is going to give you the pairing of G to the V of
+power which is given as the verification key and also is a known information
+with pi form which is generated by the rule and again if the proverb is honest
+this is g to the QR and the right hand side gives you g to the B of Power Times Q of Tau in the exponent in the Target
+group so then if following all of these
+derivations that gives you the first polynomial time second polynomial minus the third polynomial
+equals to VX times Q of X all evaluated at its secret location in the exponent
+so that is why we can the verifier can actually check this monster polynomial equation using the bilinear pair and
+again the reason why we need by linear pairing is we are checking the product relationship in the exponent and without
+valid impairing the verifier is not able to do that because of the computational DVD helmets option so that is the
+complete description of this uh snark a protocol
+and actually this version of the protocol is not uh the real version it's actually
+not secure but the reason why I'm showing you this first is already highlights the key idea of this
+construction of the stock based on qap so in a next part I'm going to show you
+several problems of this version of the protocol and also how to fix these problems to get the real start protocol
+but just for your information these changes won't affect the key ideas and also the complexity of this snark
+protocol so let's do that one by one so the first problem of this protocol
+is we already explained if the proof is honest then an all the derivation follows and you can actually pass the
+verification but now what about security right if the poor is malicious
+is the protocol secure uh well I'm not going to go into the
+formal secure proof these are actually quite Technical and you can refer to the
+original papers for the real Security Group but I will just highlight certain intuitions about the problems and the
+first problem is how can we make sure that a malicious program is really using this set of
+public parameters to compute these groups and we have this nice structured public
+parameters in The Proven key but there's no guarantee that we're using the computer plywood but what if the poorer
+is Computing this Pi one pi to Pi 3.4 or just using some random numbers that
+happens to pass those verification and then there's no guarantee that the Brewer is really proving the
+satisfiability of the circuit so then the solution uh is actually some
+techniques we've learned before in the kzu pandemic Amendment either using the knowledge of exponent assumption or the
+generic group model so to remind you a little bit so in the knowledge of exponent assumption
+every proof you're trying to compute using a set of public Keys we are going to generate an additional set of public
+parameters using a secret number Alpha and then compute G to the alpha times l
+i Tau so it's a counterpart of the original public characters
+and then for every proof Pi one you want to the proof is trying to generate we also asked for a counterpart Pi One
+Prime generally using the second set of public practice and with that the verifier has an
+additional check is using by linear query she's going to check the pairing of Pi 1
+and G2 Alpha versus Alpha should also be part of the verification key and I'm omitting here for Simplicity
+the pairing of these two should be equal to the pairing between pi One Prime and Generator G
+and if the Brewer can pass this verification then by the knowledge of exponent assumption to prove a fast to
+compute Pi 1 as G to the power of ioi Tau times
+some coefficients chosen by the proof so that is the knowledge of exponent assumption and if you apply
+this to all of the proofs in the vanilla version I've scored four we can actually
+solve this first issue and this is used in this pghr 13 paper in the pinocular
+construction another solution is again
+discussed was discussed in the kcg Panama movement called generic group model so here we don't need to do any
+additional check so this is a different model and informally speaking the adversary is only given an oracle the
+compute group operations so that is why given G to the power of IO I Tau the third is the type of should be G to the
+l i without Alpha the adversal can only compute their linear combinations
+meaning that the degree cannot just generate a random number and happens to be a group element on the the Curve so
+because of that in the ggm model informally speaking that verse it has to
+use these Global parameters the pre-key to generate the proof
+and this solution is used in Cross 16. and again the real proof is a much more
+involved because the version not only has access to this public parameters it
+also has access to other parts of the graphic parameters and you have to use some tricks to formally prove that you
+can actually extract the coefficients from the the proper coefficients from the reversary but this is the high level
+idea to solve the first problem making sure that the reversal is really using
+the public keys to generate these groups so that's the first patch
+towards the real protocol then the second problem is somehow related to the first problem
+so with the knowledge of X1 assumption and ggm we can make sure that prover is
+using the public keys to generate these proofs but there's no guarantee that the
+program is using the same coefficient the same extended business to compute Pi 1 Pi 2 and pi 3.
+so here I'm showing you the original version the vanilla Proto product that I that I described before
+note here that Pi 1 Pi 2 and Pi 3 are supposed to be computed using the same set of CIS
+in order to make sure that it is the equivalent
+arithmetic program to the original circuit set fabric even with koe or ggm you can only make
+sure that Pi lines can be using this G to the power of L itar time sum times
+some elements and Pi 2 is g to the power of R times some elements that could be
+potentially different from PI 1. that's the only guarantee you have from koe or
+TGA and if you only use these checks this
+protocol is now secure that is because if we allow the prover to use different vectors in the computation of Pi 1 and
+Pi 2. this is not corresponding to the original circuit set of 580 problem
+and the quadratic aromatic program is this master equation is saying that
+if and only if the proof is using the same CIS in these computations this is equivalent to the original circuit
+evaluation of circuit satisfied and the form is intuitive speaking you
+can see the reason as follows so these are selector polynomials as I
+explained before by selecting left input right input and output of the circuit so
+the master polynomial only makes sense if the pool is using the same CIS
+for the selected polynomials to select from if the proof is allowed to use different vectors then the computation is not even
+relevant to the original circuit you are selecting some values from one vector and
+selecting some other values from another vector and selecting some values from the third vector and then they satisfy a
+certain multiplication relationship and this has nothing to do with the original certificate valuation so that is the
+second problem so how to make sure that the Proverbs is in the same CIS in the computation of
+these three groups so then the solution is to introduce an additional set of public
+parameters in the proving key so this setup bring key is g to the power of beta times l i Tau plus I Tau
+Plus or right down and also we need to include G to the beta as part of the proven key and the
+verification key so with this set of public keys in
+addition to Pi one all with pi 4 we ask the prover to generate an additional proof Pi 5 which equals to the product
+of G to the pi beta Li Tau plus RI Tau plus y Tau raised to the power of CI
+and this compute can be computed using this new set of public Keys essentially approves raising each element of this
+public key to the crystal bonding power of CI for each element in the extended
+minutes and that's Pi five again a single group output so what's the purpose of this additional
+proven additional proofing key so it turns out there is actually a a nice
+uh relationship between this Pi 1 order to Pi 3 and Pi 5
+if these are generated honestly using the same size so you can see here that if the pool is
+using same the same CI in pi 1 Pi 1 Pi 3 if we multiply Pi 1 Pi 2 and Pi 3
+together multiplication gives you summation in the exponent and for each eye it will be
+a common factor of CI in the exponent so because of that we can actually track
+the CI out of the computation and that gives us the summation of ioi Tau plus r
+i Tau plus y Tau together times CI in the exponent and that's what we're doing
+exactly here on the left hand side of this uh new uh equation to check
+and on the right hand side we have this summation of l i Tau R A Time L given by
+the new public and then we are going to raise it to the coefficient of CI and if the proof is
+honest this verification should pass because we have the same kind of CI
+times the summation of this liri and Li in the exponent so that's the purpose of this additional
+check and to put it in the the opposite direction if the prover is malicious
+and is cheating using different vectors in this in the computation of Pi one Pi
+2 and Pi three then when we multiply these three proofs together there won't be a common factor
+for the same I right so there's no way for the plural to express this product
+as this set of public key is reading to the same coefficient CI because you're using
+different uh vectors or values in the combination of Pi one Pi 2 and Pi three
+and that is why interior is speaking the program cannot pass this additional check if the proof is cheating
+so that is the solution to the second problem so in this additional check we
+can make sure that proof is using the same set of coefficients in the generation of Pi one Pi 2 and Pi 3 and
+that is why it enforces this original quadratic arithmetic program which is
+equivalent to the circuses viability problem
+finally we have the last problem
+so so far we've talked we've talked about the simplified version where we are assuming that
+this entire input of the circuit is the witness of the poor the poor is
+trying to convince the verifier that he knows a satisfying assignment of the
+circuit but in practice in many interesting applications and
+computations we need to have some public inputs that are known both to the poor
+and the verified so then how can we support this General case in the construction of this stock
+so right now instead of proving C of w equals to Y we are proving C of x w
+equals to Y where W is the secret business known by the poorer X is the
+public input and Y is a public output so how can we support this version but turns out the fix to this issue is
+actually relatively simple because of the nice algebraic structure of the proof
+so in the again the Manila version or original version I was describing
+each proof I'm using pi one as an example equals to G to the power of summation CI times l i power
+for all I from 1 to n so we are summing over all values in this extended business
+that corresponds to all the evaluations of the circuit in like the output of multiplication case
+and the input when we have some public inputs and
+outputs it just means that somewhere acquires will have the values that are known by the verifier instead
+of only a secret to the approved so then we can actually decompose this original proof Pi 1 into two parts
+in the new proof the first part is only known by the program and I'm calling these wires as the set I meet
+instead of all wires from 1 to m this is a subset called I made known
+only to the proverb that includes the secret business non-binople and all the evaluation is related to this secret
+business and then the poorer is going to compute a new Pi 1 as G to the power of summation over the set of I made CI
+times l i Tau instead of summing over I equals to 1 to n
+then after that we have a second component which are the public values known by the verifier and then I call it
+I of IO standing for public input and public output then the verifier can compute G to the
+power of summation I belongs to i i o c i times l i Tau and because of this nice
+algebraic structure of the proof If we multiply Pi 1 with this the new Pi one
+with the second component you get the original Pi one because multiplication gives you summation in the component
+so which means that if you have some public inputs and public outputs on certain wires
+the proof is just going to generate this new Pi 1 as G to the power of I belongs
+to I mean c i times I I Tau and the verifier can recover this
+original Pi one I'm calling it Pi one star here by multiplying Pi one with G
+to the power of I in IO CI times l i Target exponent
+and similarly the verifier and plural can do the same thing for ply2 and Pi 3 and I'm omitting the formal equation for
+further and I'm just going to call this original apply to imply three as Pi to Star and Pi 3 star
+once we do that we can just perform the original check the verifier can perform the pairing
+between pi one star and pi to Star divided by the pairing between pi 3 star and G and check if it is same as the
+pairing of G to the beta where's the platform as in the original version
+so that's the fix to the third problem but now we have some public impulse or
+public output just move these tags to the verifier side and
+because of this nice algebra structure in the exponents the proof remains a Content sized
+and of course they require some changes in the key generation algorithm because
+the proving key now only includes this uh public parameters that corresponds to
+these intermediate values known only by the proofer and the verification key now needs to include this wires for the
+input and output so that's the patch for the third problem with all these three patches we end up
+with the former protocol of this of a real snark constructed from the
+quadratic arithmetic program and this version is actually a proposed was
+actually proposed by the pinocular paper in pghr13 okay and here I'm listing the
+formal algorithm to put everything together and as you can see here in a key
+generation we have the proving key which is a g to the power of these selector polynomials and also another term to
+make sure that food was using the same set of coefficients to generate all the proofs for all I
+uh for the buyers owned by the proverb known by the proof and we also have G to
+the beta and G to the power G to the Tau square and now the way to G to the top of m t value of the quotient right now
+in the verification key we have G to the retail as I specified in the vanilla protocol and we also have the additional
+verification key that corresponds to the bars that are known publicly by the verifier
+and the other regenerate the proof the poorer computes this Pi 1 pi to python Pi 4 for these uh polynomials in this
+master polynomial equation of qap and now the pi 5 to show that the coefficients of these terms are the same
+and to verify the correctness of this proof The Verve are first computes the pi one star or Pi 2 Star
+and Pi 3 star and then check these two pairing equations and it did the these checks are true
+then the verifier knows that the poorer is Computing the circuit evaluation correctly that sets the quadratic
+arithmetic program equation so that is the formal description of
+this uh snark based on 280.
+so finally to see the properties of this stock again from the pinocular paper
+the scheme has a per circuit cluster setup phase the public keys are uh I mean are
+dependent on the connections of the circuit because of the selector polynomials
+and if you still remember the big kind of table for this silica polynomials
+technically speaking the total size is quadratic but there is a sparse representation because of the sparsity
+of the Matrix a sparsity of the table so because of that there is an efficient algorithm generate
+all of these public parameters in linear time in the number of in terms of group exponentiations in the
+number of size of the circuit and to generate the proof there are two
+main components of the prover algorithm first the plural has to run this fft
+algorithm to interpolate these binomials and compute polynomial multiplications and divisions as they're described in
+the qap polynomial equation after that the poorer needs to compute
+the linear number of good group explanations in the size of the circuit to compute these proofs by raising each
+public key to the corresponding power of the coefficients and multiply them together
+and the main power of this is not construction it is that it has a very
+short proof the proof consists of a constant number of group elements in the base group so in the version I described
+in Pinocchio has only five group elements that is secure in the GGI model
+and in practice it has only hundreds of bytes that is a kind of one of the
+shortest proof size among all the stocks and the verifier time is also very
+efficient if you ignore the part for dealing with input and output
+the verified time is only constant it's a like cost number of parent equations and bilinear pairing operations and
+currently speaking is very efficient less than one millisecond but uh to be precise the verifier also
+has to compute the linear number of group of exponentiations in the number of public input and output
+so in practice this part can be a little bit more costly for the verifier but
+there are additional optimizations to further improve this part for example if your input and output is really big it
+can actually compute the hash of these input and output inside the stock and
+then in this way the public input and output of the start becomes constant and
+this computation is negligible and the verifier can actually check the hash outside of stock and then a verify the
+stock in constant time so that is the property of this stock
+based on the quadratic arithmetic program so in the next segment I'm going to show
+you some other variants of this star construction based on QEP
+so the first thing I want to briefly explain in this last part of the lecture is the r1cs rank one constraint system
+so essentially this is a generalized computation model replacing the arithmetic circuit for this type of
+snarks based on qap and linear PCP and it is widely used in practice
+so actually if you understand the construction of these qaps and selected
+polynomials is actually fairly easy to generalize it to support the so-called rncs and let's see how it works
+so remember in the example in the first part of the lecture this is a and the
+computation of arithmetic circuit and taking the selector polynomial example
+we're essentially asking a question whether each value is the left input of a gate
+and if it is we're going to put one and then if it's not we're going to put 0 and we're going to interpolate it to
+find the unique binomial RX but then our very natural question is why do we restrict ourselves to either
+zero or one right we can actually generalize this polynomials to work on any publicly
+known constant and then we can still interpolate this polynomials and see what happens for
+this entire computation system so then let's do that so now instead of
+Computing only like the left input times right input minus the output we can have this generalized constraint in this form
+still it has three pairs of premises something times something else minus
+something equals to zero but then inside each parenthesis we can have actually a linear combination on the entire
+extended Witness we can select multiple elements from the extended Venus and multiply them with
+some public constant and then let's see how can we Define
+the selector polynomials for for this type of constraint but then uh by this
+equation let's take a look at the first parenthesis but we are summing up CI times l i x so in order to map to this
+constraint uh L1 Omega should equal to three assuming that this is for the the first
+gate or first constraint right and I'll file 5 Omega equals to five and L7 Omega
+equals to negative seven and for other Li Omega other than one
+five and seven they are equal to zero but then if you compute the summation of CIA times l i x that will give you 3
+times C1 plus 5 times C5 minus 7 times C7 in the first pair of parenthesis
+similarly we can Define Rix as R2 Omega equal to 6 R9 X to 10 and everything now
+is equals to zero and if you compute the second parenthesis summation of CI times RX that would give you 6 times C2 plus 10
+times C9 right and similarly you can define o i x as a O3
+Omega equals to 1 and then o eight Omega equals to negative two that gives you the temperature in the third parenthesis
+after that we are going to interpolate these polynomials to find unique selector polynomials with
+the appropriate evaluations and degree and after that everything else remains
+exactly the same as the original protocol I presented for the arithmetic circuit the only difference is instead
+of defining things as 0 and 1 we can Define them as any public constant and in this way the same system can support
+this kind of generalized constraint where you have a linear computation on
+the extended business times another new condition equals to the third linear computation and that exactly called rank
+one constraint system and that's it that's a simple generalization
+right so apparently arithmetic circuit is uh can be written as rank one constraint system
+as we've shown in the previous example but rankular system can support
+the so-called generalized constraint or generalized gates in this form so that is why it's
+more powerful and more convenient to use in practice and also another thing to highlight here
+is that by defining these polynomials properly we are Computing these linear
+computations like addition subtractions and multiply by constant implicitly inside each parenthesis so that is why
+these additions modifications and the scalar multiplications by constant are
+almost for free in Stark systems for r1cs so that's another aspect to
+optimize for real world computations so that is r1cs
+and another important kind of property of RNC is that we're sharing is the
+Matrix view of this rycs so here
+we have some parameters of rncs so now m is the size of the extended minutes and N is the number of constraints the not
+kind of the generalized Gates okay so now we can view this uh
+extendability as a vector and to compute the value in the first parenthesis it is
+equivalent to select white values from the vector and multiply them by some
+public known constant and this can be done by a matrix Vector multiplication the metric has Dimension n by m where m
+is the same as the size of the C so you're not Computing the inner product between each row and this Vector so
+that's essentially selecting values from this extended business and multiply by public constants and they
+are going to do it n times for n constraints and similarly we are going to compute R times C for another public
+Matrix an O times C for the output Matrix after that the result of these three computations are just three vectors of
+size n h then finally we're just going to check
+the first Vector times the second Vector element wise equals to the third vector
+so that is the Matrix view of rncs we are Computing exactly the same constraint system as I described in the
+previous slide okay and the reason why it is convenient to view things like
+this is because we can actually propose new snark systems for r1cs following this Matrix view all we need to do is to
+support these two building blocks a linear attack and a Hotmail product check
+so the the approach is to First for for example for a committed extended
+Business from The proverb the poorer needs to prove to the verifier that the Matrix Vector product
+gives you another committed vector right and that's a linear relationship
+because the metric is the public liquid known information so that is why this is called a linear
+check and we can perform the linear check for these three Matrix Vector products and after that the verifier
+ends up with the commitments of three vectors of size n and the only remaining step is to check the
+thought mode product relationship which is the element wise product right the first vector
+climbs the second Vector element Y is equals to the third vector and once both checks are true then we
+have a valid r1cs system and assignment okay so that is a very convenient view
+of r1cs and the common approach design snarks for r1cs then this has been used
+in bulletproof party and Spartan and so on uh for snog systems Beyond those
+based on communities so the second uh variant I want to
+briefly discuss is this a popular construction for across 16. so this has
+the smallest proof size among all stock systems with only three group elements in the proof and it is actually indeed
+based on the qap from the peanut paper I explained earlier yeah here I want to
+show the how can we further reduce the proof size so recall that the goal is due to check
+the qap master Phenom equation P of X can be decomposed as B of x times Q of X
+and recall that there were five elements in the original proof right you have the
+proof Pi one for the polynomial in the first parenthesis and then Pi 2 for a second parenthesis third Pi 3 from third
+parenthesis apply for from the quotient polynomial and Pi five showing that the proverb is Computing these proofs using
+the same coefficients it turns out we can actually combine the last three group elements together using one new
+group element and the way is as follows so first you can see here that Pi 1 Pi 2 almost
+remains unchanged all right Pi one is still equals to G to the power of c i times I Tau but in addition we are going
+to add a alpha to it where Alpha is again a secret key computed in the trusses setup
+and G to the alpha should be in the public parameters for for both the
+program and similarly Pi 2 equals g to the beta plus the original CI times r i term
+and now the pi 3 will be changed uh kind of a
+to to to take account into account all the remaining checks we want to perform
+as you can see here Pi 3 equals to G to the power CI times beta times l i Tau
+plus r four times r i Tau plus o by Tau and plus v Tau times Q of Tau so the
+last term is Computing this product of the the quotient polynomial has the
+original Pi 4 for G to the QT and inside this parenthesis you have CI times o i
+Tau so that is for the third parenthesis and they're combined together again it
+is actually not hard to see this because you can just move the third term to the right hand side of the equation I have
+VX times QX plus the third term and the main term of for the purpose of
+proving that the Brewer is actually using the same CI and the new verifier algorithm becomes
+the pairing between pi 1 Pi 2 should equal to the pairing between pi 3 and the generator times the pairing of G to
+the alpha and G to the beta assuming that both gdav and G to Beta are in the verification key now
+and the way to see this equation is that if you multiply
+the exponent of Pi 1 and pi 2. you will have the product of this summation times the
+summation that is the original Master polynomial equation right and this should equal to
+CI times oi Tau plus beta times Q of Tau by moving the third term to the right
+hand side so you have these terms in the exponent by this parent check
+then you have some additional terms when you multiply the exponent of Pi 1 Pi 2 you have beta times CI times
+l i the summation on this and that's taken care of by this first term in a new Pi 3. you also have the cross term
+R4 times the summation of CI times r i tell and that's taken care of by the second term of this new summation and
+the fact that you're Computing all of this using this new public key guarantees that the resulting the same
+CI as Pi one and pi 2. if you prove it formally okay and
+finally you have an actual term G to the alpha times beta and that can be checked
+by Computing this G to the r pairing of G to the alpha and G to the beta in the verification key and this can be done
+ahead of time uh in the in the verification app
+so that is the kind of high level idea to further reduce the proof size from five
+elements to three elements only and that is the kind of the Improvement
+of across 16. and again to be to be precise this is actually not the actual
+algorithm so this is only the giving the intuition not this new algorithm
+combining these three elements into one in the new Pi three the real algorithm
+used to take account take into account the intermediate wires known only by The
+Uber and also the public input and public output you also need to ensure zero knowledge
+on top of that so for the real protocol please refer to the gross 16 paper for
+for details so basically to summarize the properties you also need to change the key
+generation accordingly with these new public parameters and now the proof size becomes three group elements only and
+depending on the bilinear living curves apparently friendly curves you're using in practice it can be as low as 144
+bytes in practice so that's very impressive and the very far time becomes a single parent equation we have three
+bilingual pairing in the check so these are very efficient in practice
+so the blouse variant on the Highlight is achieving zero knowledge
+so um as we always been doing so in most of the lectures of this course so far we
+always focus on the claim protocol with correctness and Science and we don't
+usually talk about zero knowledge that is because usually it is not hard to
+achieve zero knowledge you just add some randomizer to these proofs to achieve zero knowledge for example I showed you
+a version of zero knowledge panamic amendment in lecture six and here we are actually following a similar idea so
+again I'm listing the original protocol of the the pinocular construction for
+Simplicity and I'm only showing you the pi one all the way to to Pi four here okay so again this version is not zero
+knowledge for a similar reason as I explained earlier in lecture six right there is the deterministic and although
+it's not repeating all the values of circuit because it's only a single group element but you can infer some information
+from these proofs right you can make a hypothesis whether all the values are zero in the circuit
+and check whether the proof will give you the same proof in this way you can kind of do this Brute Force search
+attack to infer information about values and for me speaking there's no way for you
+to construct the simulator in the proof to prove zero knowledge and the way to fix it is to actually
+introduce some randomizers to randomize these servers and
+for on top of Pinocchio the zero knowledge version is a fairly simple and the way to do it is to randomize this
+value by adding an actual term in the exponent and again you can try to add a
+random number Dollar one dollar to dollar three in the proofs but then you realize that that will ruin the relationship of these proofs and the
+pairing equation to check no longer holds so then the right way to randomize it is to actually introduce a Delta 1
+times the vanishing point value B of Tau to each proof because of that when you multiply
+these two a polynomials together in the exponent it is still divisible by the management polynomial because you have a
+common factor in all of these products so in this way with these randomizers we
+can formally prove that you can actually simulate these proofs without knowing the real
+witness of the approver and at the same time the scheme is also has a knowledge
+science by the same pairing equation check and the slightly different proof so this is the idea to achieve zero
+knowledge in the original version of the Pinocchio paper based on qvp and for the
+gross 16 version if it's a slightly different but still you're trying to add some randomizers to these proofs and
+still preserving the parenting equation to check so that's the variant of zero knowledge
+so that is everything we're going to talk about for snarks based on linear PCB and qap and next look in the next
+lecture then we'll talk about the construction of a research recursive stocks so thank you for listening
